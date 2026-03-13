@@ -24,7 +24,7 @@ export default async function AdminPedidosPage() {
 
   const totalRevenue = orders
     .filter((o) => o.status === "APPROVED")
-    .reduce((sum, o) => sum + o.total, 0);
+    .reduce((sum, o) => sum + o.total.toNumber(), 0);
 
   return (
     <div>
@@ -73,7 +73,7 @@ export default async function AdminPedidosPage() {
                   </p>
                 ))}
               </div>
-              <p className="sm:col-span-2 text-sm text-accent">{formatCurrency(order.total)}</p>
+              <p className="sm:col-span-2 text-sm text-accent">{formatCurrency(order.total.toNumber())}</p>
               <p className={`sm:col-span-1 text-xs ${statusColor[order.status] ?? "text-muted"}`}>
                 {statusLabel[order.status] ?? order.status}
               </p>
