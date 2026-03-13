@@ -5,18 +5,19 @@ import { prisma } from "@/lib/db";
 import { presentationSchema } from "@/lib/validations";
 
 // PUT /api/palestras/[id] - admin only
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.type !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
   try {
+    const { id } = await params;
     const body = await req.json();
     const data = presentationSchema.parse(body);
 
     const presentation = await prisma.presentation.update({
-      where: { id: params.id },
+      where: { id },
       data,
     });
     return NextResponse.json(presentation);
@@ -27,14 +28,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE /api/palestras/[id] - admin only
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.type !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
+  const { id } = await params;
   await prisma.presentation.update({
-    where: { id: params.id },
+    where: { id },
     data: { active: false },
   });
   return NextResponse.json({ message: "Palestra removida" });

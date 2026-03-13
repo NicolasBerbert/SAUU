@@ -4,23 +4,25 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { productSchema } from "@/lib/validations";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.type !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
+  const { id } = await params;
   const data = productSchema.parse(await req.json());
-  const product = await prisma.product.update({ where: { id: params.id }, data });
+  const product = await prisma.product.update({ where: { id }, data });
   return NextResponse.json(product);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.type !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
-  await prisma.product.update({ where: { id: params.id }, data: { active: false } });
+  const { id } = await params;
+  await prisma.product.update({ where: { id }, data: { active: false } });
   return NextResponse.json({ message: "Produto removido" });
 }
