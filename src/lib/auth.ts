@@ -16,6 +16,13 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        // Rate limit por e-mail: 10 tentativas a cada 15 minutos
+        const limit = checkRateLimit(`login:${credentials.email.toLowerCase()}`, {
+          windowSec: 900,
+          max: 10,
+        });
+        if (!limit.allowed) return null; // NextAuth converte null em erro genérico
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
@@ -38,7 +45,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.type = (user as { type: UserType }).type;
+        token.type = (user as unknown as { type: UserType }).type;
       }
       return token;
     },

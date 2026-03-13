@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Conta criada com sucesso" }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "ZodError") {
-      return NextResponse.json({ error: "Dados inválidos", details: error.message }, { status: 422 });
+      return NextResponse.json({ error: "Dados inválidos" }, { status: 422 });
     }
     console.error("[POST /api/auth/cadastro]", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
