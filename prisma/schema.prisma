@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserType {
+  UNIFIL   // Aluno da Unifil (@edu.unifil.br)
+  UEL      // Aluno da UEL
+  FORMADO  // Já formado
+  ADMIN
+}
+
+enum SlotTime {
+  SLOT_19H00  // 19:00
+  SLOT_20H45  // 20:45
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// USUÁRIOS
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String
+  password      String
+  institution   String                        // Nome da instituição
+  type          UserType
+  emailVerified Boolean   @default(false)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  eventRegistration EventRegistration?
+  presentationSlots PresentationSlot[]
+  orders            Order[]
+  certificate       Certificate?
+
+  @@index([email])
+  @@index([type])
+}
+
+// ─────────────────────────────────────────────
+// EVENTO
+// ─────────────────────────────────────────────
+
+// Inscrição paga no evento (1 por usuário)
+model EventRegistration {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentId     String?       // ID do pagamento no Mercado Pago
+  amount        Decimal       @db.Decimal(10, 2)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// PALESTRAS
+// ─────────────────────────────────────────────
+
+model Presentation {
+  id          String   @id @default(cuid())
+  title       String
+  speaker     String
+  bio         String?  // Biografia/descrição do palestrante
+  imageUrl    String?  // Foto do palestrante
+  day         Int      // 1 a 5 (dia do evento)
+  slot        SlotTime // 19:00 ou 20:45
+  maxCapacity Int      @default(100) // PLACEHOLDER - ajustar depois
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  slots PresentationSlot[]
+
+  @@unique([day, slot]) // Uma palestra por horário por dia
+  @@index([day])
+}
+
+// Inscrição do usuário em uma palestra específica (gratuito, após pagar o evento)
+model PresentationSlot {
+  id             String   @id @default(cuid())
+  userId         String
+  presentationId String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  presentation Presentation @relation(fields: [presentationId], references: [id])
+
+  @@unique([userId, presentationId])
+  @@index([presentationId])
+}
+
+// ─────────────────────────────────────────────
+// LOJA
+// ─────────────────────────────────────────────
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  imageUrl    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String
+  total     Decimal     @db.Decimal(10, 2)
+  status    OrderStatus @default(PENDING)
+  paymentId String?     // ID do pagamento no Mercado Pago
+  notes     String?     // Observações (ex: tamanho da camiseta)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2) // Preço no momento da compra
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+// ─────────────────────────────────────────────
+// CERTIFICADOS (apenas para alunos UEL)
+// ─────────────────────────────────────────────
+
+model Certificate {
+  id       String   @id @default(cuid())
+  userId   String   @unique
+  issuedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

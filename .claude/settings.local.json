@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test -f \"c:/Users/nickb/SAUU/src/app/globals.css\")"
+    ]
+  }
+}

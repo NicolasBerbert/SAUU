@@ -1,0 +1,101 @@
+import { z } from "zod";
+import { UserType } from "@prisma/client";
+
+// ─────────────────────────────────────────────
+// Cadastro
+// ─────────────────────────────────────────────
+
+const baseRegisterSchema = z.object({
+  name: z.string().min(3, "Nome deve ter ao menos 3 caracteres"),
+  email: z.string().email("E-mail inválido"),
+  phone: z
+    .string()
+    .min(10, "Telefone inválido")
+    .max(15, "Telefone inválido")
+    .regex(/^[\d\s\(\)\-\+]+$/, "Telefone inválido"),
+  password: z.string().min(6, "Senha deve ter ao menos 6 caracteres"),
+  confirmPassword: z.string(),
+  institution: z.string().min(2, "Informe a instituição"),
+});
+
+export const unifilRegisterSchema = baseRegisterSchema
+  .extend({
+    type: z.literal(UserType.UNIFIL),
+    email: z
+      .string()
+      .email("E-mail inválido")
+      .refine((v) => v.endsWith("@edu.unifil.br"), {
+        message: "E-mail deve ser @edu.unifil.br",
+      }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+export const uelRegisterSchema = baseRegisterSchema
+  .extend({
+    type: z.literal(UserType.UEL),
+    ra: z.string().min(5, "RA inválido"), // Registro Acadêmico UEL
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+export const graduateRegisterSchema = baseRegisterSchema
+  .extend({
+    type: z.literal(UserType.FORMADO),
+    graduationYear: z
+      .number()
+      .min(1990)
+      .max(new Date().getFullYear()),
+    graduationInstitution: z.string().min(2, "Informe a instituição de formação"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+// ─────────────────────────────────────────────
+// Login
+// ─────────────────────────────────────────────
+
+export const loginSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(1, "Informe a senha"),
+});
+
+// ─────────────────────────────────────────────
+// Produtos (admin)
+// ─────────────────────────────────────────────
+
+export const productSchema = z.object({
+  name: z.string().min(2, "Nome obrigatório"),
+  description: z.string().optional(),
+  price: z.number().positive("Preço deve ser positivo"),
+  stock: z.number().int().min(0, "Estoque não pode ser negativo"),
+  imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  active: z.boolean().default(true),
+});
+
+// ─────────────────────────────────────────────
+// Palestras (admin)
+// ─────────────────────────────────────────────
+
+export const presentationSchema = z.object({
+  title: z.string().min(3, "Título obrigatório"),
+  speaker: z.string().min(3, "Nome do palestrante obrigatório"),
+  bio: z.string().optional(),
+  imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  day: z.number().int().min(1).max(5),
+  slot: z.enum(["SLOT_19H00", "SLOT_20H45"]),
+  maxCapacity: z.number().int().positive("Vagas deve ser positivo"),
+});
+
+export type UnifliRegisterInput = z.infer<typeof unifilRegisterSchema>;
+export type UELRegisterInput = z.infer<typeof uelRegisterSchema>;
+export type GraduateRegisterInput = z.infer<typeof graduateRegisterSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ProductInput = z.infer<typeof productSchema>;
+export type PresentationInput = z.infer<typeof presentationSchema>;
