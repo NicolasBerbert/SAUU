@@ -62,7 +62,7 @@ export default async function LojaPage() {
                   )}
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-border">
-                  <span className="text-base text-accent">{formatCurrency(product.price)}</span>
+                  <span className="text-base text-accent">{formatCurrency(product.price.toNumber())}</span>
                   {product.stock > 0 ? (
                     <span className="text-[10px] uppercase tracking-widest text-muted">
                       {product.stock} disponíveis
