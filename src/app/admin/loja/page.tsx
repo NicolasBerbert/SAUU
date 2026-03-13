@@ -2,9 +2,11 @@ import { prisma } from "@/lib/db";
 import { ProductManager } from "@/components/admin/ProductManager";
 
 export default async function AdminLojaPage() {
-  const products = await prisma.product.findMany({
+  const raw = await prisma.product.findMany({
     orderBy: { name: "asc" },
   });
+
+  const products = raw.map((p) => ({ ...p, price: p.price.toNumber() }));
 
   return (
     <div>
