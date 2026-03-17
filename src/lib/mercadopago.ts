@@ -58,7 +58,7 @@ export async function createShopOrderPreference(params: {
   userName: string;
   userEmail: string;
   orderId: string;
-  items: Array<{ title: string; quantity: number; unit_price: number }>;
+  items: Array<{ id: string; title: string; quantity: number; unit_price: number }>;
   total: number;
 }) {
   const preference = await mpPreference.create({

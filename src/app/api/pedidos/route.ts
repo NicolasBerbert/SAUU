@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
   const mpItems = items.map((item) => {
     const product = products.find((p) => p.id === item.productId)!;
     return {
+      id: product.id,
       title: product.name,
       quantity: item.quantity,
       unit_price: Number(product.price),
