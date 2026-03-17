@@ -8,10 +8,6 @@ import { NextResponse } from "next/server";
 // Remove este arquivo quando o MP estiver configurado.
 
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Não disponível" }, { status: 404 });
-  }
-
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
