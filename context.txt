@@ -1,0 +1,136 @@
+SAUU — Contexto Completo
+O projeto
+Site profissional (cliente paga) para o evento Semana de Arquitetura Unifil em Londrina/PR. A universidade teve outro site hackeado, então segurança é tratada como prioridade máxima. Idioma de todo código e comentários: Português do Brasil.
+
+Stack
+Next.js 16.x (App Router, full-stack) — foi atualizado de 15→16 por CVEs críticos
+PostgreSQL self-hosted + Prisma 5.22
+NextAuth.js v4 — JWT, CredentialsProvider, maxAge 8 horas
+Mercado Pago SDK v2 — credenciais ainda são placeholder, não configuradas em produção
+Nodemailer — emails de confirmação e verificação
+Tailwind CSS — tema escuro customizado (background, foreground, accent, muted, surface, border, danger, success)
+Zod + React Hook Form — validação frontend e backend
+PM2 cluster (2 instâncias) + Nginx em Oracle VM Always Free ARM Ubuntu 24.04
+Tipos de usuário e regras
+Tipo	Regra
+UNIFIL	email obrigatório @edu.unifil.br
+UEL	qualquer email, tem campo RA
+FORMADO	qualquer email, campos de graduação
+ADMIN	sem restrição de email
+Inscrição no evento é paga (EVENT_REGISTRATION_PRICE no .env)
+Palestras são gratuitas mas exigem inscrição paga
+5 dias × 2 slots (19h00, 20h45) = 10 palestras máx, @@unique([day, slot])
+Loja: produtos físicos, retirada no evento, sem shipping
+Certificados: apenas UEL, geração PDF não implementada
+Schema do banco
+
+User                    — auth + tipo + emailVerified + active
+EmailVerificationToken  — token SHA-256, expira 24h
+EventRegistration       — 1 por usuário, paymentStatus, paymentId, attendedAt
+Presentation            — title, speaker, day, slot, maxCapacity, @@unique([day,slot])
+PresentationSlot        — @@unique([userId, presentationId])
+Product                 — name, price, stock, active
+Order                   — userId, total, status, paymentId
+OrderItem               — orderId, productId, quantity, price(snapshot)
+Certificate             — userId único, issuedAt
+AuditLog                — actorId?, actorType, action, entityId?, entityType?, metadata(Json?)
+Rotas API
+Rota	Método	Auth	Descrição
+/api/auth/cadastro	POST	—	Registro por tipo, rate limit, envia email de verificação
+/api/auth/verificar-email	GET	—	Confirma email via token
+/api/auth/[...nextauth]	*	—	NextAuth handler
+/api/palestras	GET	—	Listagem pública
+/api/palestras	POST	ADMIN	Criação
+/api/palestras/[id]	PUT/DELETE	ADMIN	Edição/exclusão
+/api/inscricoes	POST/DELETE	AUTH + pago	Inscrição em palestra
+/api/loja/produtos	GET	—	Listagem pública
+/api/loja/produtos	POST	ADMIN	Criação
+/api/loja/produtos/[id]	PUT/DELETE	ADMIN	Edição/exclusão
+/api/pedidos	POST	AUTH	Cria pedido + reserva estoque atômica
+/api/pagamento/criar	POST	AUTH	Cria preference MP para inscrição
+/api/pagamento/simular	POST	AUTH	⚠️ SÓ EM development — simula aprovação
+/api/pagamento/webhook	POST	MP signature	Recebe notificações MP
+/api/certificados	POST	UEL	Emite certificado (stub)
+/api/perfil/senha	PUT	AUTH	Troca senha
+/api/admin/exportar	GET	ADMIN	CSV de inscritos
+/api/health	GET	—	Status do banco (200/503)
+Segurança implementada
+Headers: X-Frame-Options, X-Content-Type-Options, XSS-Protection, Referrer-Policy, Permissions-Policy, CSP em Report-Only
+
+Auth: JWT 8h, rate limit 5/instância/15min (10 efetivos com PM2 ×2), bcrypt custo 10
+
+Webhook MP: HMAC-SHA256 timing-safe, rejeita timestamp > 5 min, idempotência por paymentId+status
+
+Estoque: reservado atomicamente na criação do pedido com $transaction + updateMany where stock >= qty. Devolvido via webhook em REJECTED/CANCELLED/REFUNDED.
+
+Validação: Zod em todas as rotas, erros internos nunca expostos, senha min 8 chars + 1 número
+
+Outros: verifyCsrf() nas rotas de estado, logger.ts JSON, audit() para ações financeiras, validateEnv() no startup
+
+Libs utilitárias em src/lib/
+Arquivo	Função
+auth.ts	NextAuth config
+db.ts	Singleton PrismaClient
+mercadopago.ts	Preferences de evento e loja
+validations.ts	Schemas Zod por tipo de usuário
+rateLimit.ts	Rate limiter in-memory (janela deslizante)
+email.ts	sendConfirmationEmail, sendVerificationEmail, hashToken
+logger.ts	logger.info/warn/error → JSON
+csrf.ts	verifyCsrf() — verifica Origin/Referer
+audit.ts	audit() — escreve AuditLog sem quebrar fluxo
+env.ts	validateEnv() — valida vars no startup
+utils.ts	formatCurrency, slotLabel, cn
+Páginas
+Rota	Tipo	Descrição
+/	public	Home
+/programacao	public	Grade de palestras
+/loja	public	Vitrine de produtos
+/cadastro	public	Seleção de tipo
+/cadastro/unifil /uel /formado	public	Formulários por tipo
+/login	public	Login
+/verificar-email	public	Estados: aguardando/sucesso/erro
+/checkout	auth	Resumo + CheckoutButton
+/checkout/sucesso /cancelado	public	Resultado do pagamento
+/inscricao	auth+pago	Seleção de palestras
+/minhas-palestras	auth	Palestras inscritas
+/perfil/alterar-senha	auth	Troca de senha
+/admin	ADMIN	Dashboard com métricas
+/admin/palestras	ADMIN	CRUD palestras
+/admin/usuarios	ADMIN	Tabela + Exportar CSV
+/admin/loja	ADMIN	CRUD produtos
+/admin/pedidos	ADMIN	Tabela de pedidos
+Todas as páginas com queries ao banco têm export const dynamic = "force-dynamic".
+
+Conta admin
+Email: rafaela.maria@edu.unifil.br
+Senha: sauu@2025 — deve ser trocada após primeiro login
+Fluxo de pagamento atual (desenvolvimento)
+CheckoutButton → POST /api/pagamento/simular → cria EventRegistration APPROVED → /checkout/sucesso
+
+Em produção, CheckoutButton deve chamar /api/pagamento/criar → MP → webhook confirma.
+
+O que ainda falta (por prioridade)
+Antes do go-live (crítico)
+Gatekeeper de email verificado em /api/pagamento/criar — o fluxo existe mas não bloqueia ainda
+Novo VM hardened — rpcbind desabilitado, UFW (22/80/443), fail2ban, SSH key-only, usuário dedicado sem sudo
+HTTPS/SSL via Certbot + Let's Encrypt — aguardando domínio (provável sauu.unifil.br)
+Trocar todas as credenciais do .env — VM anterior foi comprometida em 18/03/2026
+Credenciais reais do Mercado Pago
+Limpeza de pedidos PENDING antigos — estoque reservado nunca liberado para pedidos abandonados
+Funcionalidades planejadas
+Certificado PDF com @react-pdf/renderer (rota existe, retorna stub)
+Check-in admin no dia do evento (attendedAt já está no schema)
+2FA TOTP para ADMIN com otplib
+Sentry para monitoramento de erros em produção
+Nginx rate limiting na camada de rede
+CSP enforçado (mudar de Report-Only para enforçar)
+Ambiente local
+
+docker-compose up -d                          # PostgreSQL na porta 5433
+npx prisma migrate dev --name "nome"          # criar migration
+npx prisma generate                           # sempre após mudanças no schema
+npm run db:seed                               # admin + palestras + produtos placeholder
+npm run dev
+npm run build                                 # verificar antes de PR/deploy
+Incidente de segurança — VM comprometida (18/03/2026)
+O VM Oracle foi comprometido por malware Kinsing via rpcbind (porta 111 exposta ao internet por padrão no Ubuntu 24.04). Processos scanner_linux e kinsing rodavam como usuário ubuntu. Login suspeito de 181.77.215.183 em 17/03 às 22:15. O .env com todas as credenciais ficou exposto. VM não está mais em uso. Será recriado com hardening adequado.

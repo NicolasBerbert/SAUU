@@ -6,6 +6,14 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
+    // ADMIN com 2FA pendente → redireciona para a página de código TOTP
+    if ((token?.type as string) === "TOTP_PENDING") {
+      if (!pathname.startsWith("/login/2fa")) {
+        return NextResponse.redirect(new URL("/login/2fa", req.url));
+      }
+      return NextResponse.next();
+    }
+
     // Protege rotas admin - apenas ADMIN pode acessar
     if (pathname.startsWith("/admin") && token?.type !== "ADMIN") {
       return NextResponse.redirect(new URL("/login?erro=acesso_negado", req.url));
@@ -28,5 +36,6 @@ export const config = {
     "/checkout/:path*",
     "/admin/:path*",
     "/perfil/:path*",
+    "/login/2fa",
   ],
 };

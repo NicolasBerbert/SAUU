@@ -7,10 +7,13 @@ import { signOut } from "next-auth/react";
 
 const links = [
   { href: "/admin", label: "Dashboard", exact: true },
+  { href: "/admin/relatorios", label: "Relatórios" },
+  { href: "/admin/checkin", label: "Check-in" },
   { href: "/admin/palestras", label: "Palestras" },
   { href: "/admin/usuarios", label: "Usuários" },
   { href: "/admin/loja", label: "Loja" },
   { href: "/admin/pedidos", label: "Pedidos" },
+  { href: "/admin/configurar-2fa", label: "2FA" },
 ];
 
 export function AdminNav() {

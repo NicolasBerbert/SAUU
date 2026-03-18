@@ -13,7 +13,10 @@ const baseRegisterSchema = z.object({
     .min(10, "Telefone inválido")
     .max(15, "Telefone inválido")
     .regex(/^[\d\s\(\)\-\+]+$/, "Telefone inválido"),
-  password: z.string().min(6, "Senha deve ter ao menos 6 caracteres"),
+  password: z
+    .string()
+    .min(8, "Senha deve ter ao menos 8 caracteres")
+    .regex(/[0-9]/, "Senha deve conter ao menos um número"),
   confirmPassword: z.string(),
   institution: z.string().min(2, "Informe a instituição"),
 });

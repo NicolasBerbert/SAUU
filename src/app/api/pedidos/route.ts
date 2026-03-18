@@ -4,24 +4,48 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { createShopOrderPreference } from "@/lib/mercadopago";
+import { logger } from "@/lib/logger";
+import { verifyCsrf } from "@/lib/csrf";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { audit } from "@/lib/audit";
+import { sendAdminAlert } from "@/lib/alert";
 
 const orderSchema = z.object({
   items: z.array(
     z.object({
       productId: z.string().cuid(),
-      quantity: z.number().int().positive(),
+      quantity: z.number().int().positive().max(10),
     })
-  ).min(1),
+  ).min(1).max(20),
 });
 
-// POST /api/pedidos - criar pedido e retornar link de pagamento do MP
+// POST /api/pedidos - criar pedido com reserva atômica de estoque
 export async function POST(req: NextRequest) {
+  if (!verifyCsrf(req)) {
+    return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
+  }
+
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  const { items } = orderSchema.parse(await req.json());
+  // Rate limit: 10 pedidos por usuário por hora (5 por instância com PM2 ×2)
+  const rl = checkRateLimit(`pedidos:${session.user.id}`, { windowSec: 3600, max: 5 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Muitos pedidos em pouco tempo. Aguarde antes de tentar novamente." },
+      { status: 429 }
+    );
+  }
 
-  // Buscar produtos e calcular total
+  let parsed;
+  try {
+    parsed = orderSchema.parse(await req.json());
+  } catch {
+    return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+  }
+  const { items } = parsed;
+
+  // Buscar produtos ativos
   const productIds = items.map((i) => i.productId);
   const products = await prisma.product.findMany({
     where: { id: { in: productIds }, active: true },
@@ -31,58 +55,110 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Um ou mais produtos não encontrados" }, { status: 404 });
   }
 
-  // Verificar estoque
-  for (const item of items) {
-    const product = products.find((p) => p.id === item.productId)!;
-    if (product.stock < item.quantity) {
-      return NextResponse.json(
-        { error: `Estoque insuficiente para ${product.name}` },
-        { status: 409 }
-      );
-    }
-  }
-
   const total = items.reduce((sum, item) => {
     const product = products.find((p) => p.id === item.productId)!;
     return sum + Number(product.price) * item.quantity;
   }, 0);
 
-  // Criar pedido no banco
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  try {
+    // Transação atômica: reserva de estoque + criação do pedido
+    // O estoque é decrementado na criação — não no webhook.
+    // Caso o pagamento seja rejeitado/cancelado, o webhook devolve o estoque.
+    const order = await prisma.$transaction(async (tx) => {
+      // Reservar estoque de cada item atomicamente
+      for (const item of items) {
+        const updated = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity }, active: true },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (updated.count === 0) {
+          const product = products.find((p) => p.id === item.productId)!;
+          throw new Error(`STOCK_INSUFFICIENT:${product.name}`);
+        }
+      }
 
-  const order = await prisma.order.create({
-    data: {
+      return tx.order.create({
+        data: {
+          userId: session.user.id,
+          total,
+          items: {
+            create: items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: products.find((p) => p.id === item.productId)!.price,
+            })),
+          },
+        },
+      });
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    });
+
+    const mpItems = items.map((item) => {
+      const product = products.find((p) => p.id === item.productId)!;
+      return {
+        id: product.id,
+        title: product.name,
+        quantity: item.quantity,
+        unit_price: Number(product.price),
+      };
+    });
+
+    const preference = await createShopOrderPreference({
       userId: session.user.id,
+      userName: user!.name,
+      userEmail: user!.email,
+      orderId: order.id,
+      items: mpItems,
       total,
-      items: {
-        create: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: products.find((p) => p.id === item.productId)!.price,
-        })),
+    });
+
+    await audit({
+      actorId: session.user.id,
+      actorType: "USER",
+      action: "ORDER_CREATED",
+      entityId: order.id,
+      entityType: "Order",
+      metadata: {
+        total,
+        itemCount: items.length,
+        ip: getClientIp(req),
+        productIds,
       },
-    },
-  });
+    });
 
-  // Criar preferência no Mercado Pago
-  const mpItems = items.map((item) => {
-    const product = products.find((p) => p.id === item.productId)!;
-    return {
-      id: product.id,
-      title: product.name,
-      quantity: item.quantity,
-      unit_price: Number(product.price),
-    };
-  });
+    // Alerta se algum produto zerou o estoque após esta reserva
+    const produtosZerados = await prisma.product.findMany({
+      where: { id: { in: productIds }, stock: 0, active: true },
+      select: { name: true, id: true },
+    });
+    if (produtosZerados.length > 0) {
+      const nomes = produtosZerados.map((p) => `• ${p.name} (${p.id})`).join("\n");
+      await sendAdminAlert(
+        "Produto(s) com estoque zerado",
+        `Os seguintes produtos esgotaram o estoque após um pedido:\n\n${nomes}\n\nPedido: ${order.id}`,
+        "AVISO"
+      );
+    }
 
-  const preference = await createShopOrderPreference({
-    userId: session.user.id,
-    userName: user!.name,
-    userEmail: user!.email,
-    orderId: order.id,
-    items: mpItems,
-    total,
-  });
-
-  return NextResponse.json({ orderId: order.id, checkoutUrl: preference.init_point });
+    return NextResponse.json({ orderId: order.id, checkoutUrl: preference.init_point });
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
+      const productName = error.message.replace("STOCK_INSUFFICIENT:", "");
+      return NextResponse.json(
+        { error: `Estoque insuficiente para ${productName}` },
+        { status: 409 }
+      );
+    }
+    logger.error("POST /api/pedidos", error);
+    await sendAdminAlert(
+      "Erro ao criar pedido na loja",
+      `Usuário: ${session.user.id}\nErro: ${error instanceof Error ? error.message : String(error)}`,
+      "ERRO"
+    );
+    return NextResponse.json({ error: "Erro ao criar pedido" }, { status: 500 });
+  }
 }

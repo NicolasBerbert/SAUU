@@ -36,6 +36,7 @@ enum OrderStatus {
   APPROVED
   REJECTED
   CANCELLED
+  REFUNDED
 }
 
 // ─────────────────────────────────────────────
@@ -48,33 +49,52 @@ model User {
   email         String    @unique
   phone         String
   password      String
-  institution   String                        // Nome da instituição
+  institution   String
   type          UserType
   emailVerified Boolean   @default(false)
   active        Boolean   @default(true)
+  totpSecret    String?   // TOTP 2FA (apenas ADMIN)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  eventRegistration EventRegistration?
-  presentationSlots PresentationSlot[]
-  orders            Order[]
-  certificate       Certificate?
+  eventRegistration    EventRegistration?
+  presentationSlots    PresentationSlot[]
+  orders               Order[]
+  certificate          Certificate?
+  emailVerificationTokens EmailVerificationToken[]
+  auditLogs            AuditLog[]
 
   @@index([email])
   @@index([type])
 }
 
 // ─────────────────────────────────────────────
+// VERIFICAÇÃO DE EMAIL
+// ─────────────────────────────────────────────
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique // hash SHA-256 do token enviado por e-mail
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
 // EVENTO
 // ─────────────────────────────────────────────
 
-// Inscrição paga no evento (1 por usuário)
 model EventRegistration {
   id            String        @id @default(cuid())
   userId        String        @unique
   paymentStatus PaymentStatus @default(PENDING)
-  paymentId     String?       // ID do pagamento no Mercado Pago
+  paymentId     String?
   amount        Decimal       @db.Decimal(10, 2)
+  attendedAt    DateTime?     // Preenchido no check-in do dia do evento
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -89,22 +109,21 @@ model Presentation {
   id          String   @id @default(cuid())
   title       String
   speaker     String
-  bio         String?  // Biografia/descrição do palestrante
-  imageUrl    String?  // Foto do palestrante
-  day         Int      // 1 a 5 (dia do evento)
-  slot        SlotTime // 19:00 ou 20:45
-  maxCapacity Int      @default(100) // PLACEHOLDER - ajustar depois
+  bio         String?
+  imageUrl    String?
+  day         Int
+  slot        SlotTime
+  maxCapacity Int      @default(100)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   slots PresentationSlot[]
 
-  @@unique([day, slot]) // Uma palestra por horário por dia
+  @@unique([day, slot])
   @@index([day])
 }
 
-// Inscrição do usuário em uma palestra específica (gratuito, após pagar o evento)
 model PresentationSlot {
   id             String   @id @default(cuid())
   userId         String
@@ -141,8 +160,8 @@ model Order {
   userId    String
   total     Decimal     @db.Decimal(10, 2)
   status    OrderStatus @default(PENDING)
-  paymentId String?     // ID do pagamento no Mercado Pago
-  notes     String?     // Observações (ex: tamanho da camiseta)
+  paymentId String?
+  notes     String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
@@ -158,7 +177,7 @@ model OrderItem {
   orderId   String
   productId String
   quantity  Int
-  price     Decimal @db.Decimal(10, 2) // Preço no momento da compra
+  price     Decimal @db.Decimal(10, 2)
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
@@ -176,4 +195,26 @@ model Certificate {
   issuedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG — rastreio de ações financeiras e admin
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  // null para eventos de sistema/webhook
+  actorType  String   // "USER" | "ADMIN" | "SYSTEM" | "WEBHOOK"
+  action     String   // ex: "PAYMENT_APPROVED", "PRODUCT_UPDATED"
+  entityId   String?  // ID do registro afetado
+  entityType String?  // ex: "EventRegistration", "Order", "Product"
+  metadata   Json?    // contexto adicional (sem dados pessoais)
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entityId])
+  @@index([action])
+  @@index([createdAt])
 }

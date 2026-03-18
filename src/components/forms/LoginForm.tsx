@@ -37,7 +37,14 @@ export function LoginForm() {
     }
 
     const session = await getSession();
-    if (session?.user?.type === "ADMIN") {
+    const type = session?.user?.type as string | undefined;
+
+    if (type === "TOTP_PENDING") {
+      router.push("/login/2fa");
+      return;
+    }
+
+    if (type === "ADMIN") {
       router.push("/admin");
     } else {
       router.push("/minhas-palestras");

@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(test -f \"c:/Users/nickb/SAUU/src/app/globals.css\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npx vitest:*)",
+      "Bash(ls \"c:/Users/nickb/SAUU/src/app/\\(auth\\)/\")",
+      "Bash(ls \"c:/Users/nickb/SAUU/src/app/\\(auth\\)/login/\")"
     ]
   }
 }

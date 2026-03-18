@@ -46,6 +46,12 @@ export default async function AdminUsuariosPage() {
             {users.length} cadastrados · {totalPaid} com inscrição paga
           </p>
         </div>
+        <a
+          href="/api/admin/exportar"
+          className="text-xs uppercase tracking-widest border border-accent px-4 py-2 text-accent hover:bg-accent hover:text-background transition-colors"
+        >
+          Exportar CSV
+        </a>
       </div>
 
       <div className="border border-border">

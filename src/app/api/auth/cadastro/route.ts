@@ -8,11 +8,14 @@ import {
   graduateRegisterSchema,
 } from "@/lib/validations";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
+import { sendVerificationEmail, hashToken } from "@/lib/email";
+import { randomBytes } from "crypto";
 
 export async function POST(req: NextRequest) {
-  // 10 tentativas de cadastro por IP a cada 15 minutos
+  // 5 por IP por instância (10 efetivos com 2 instâncias PM2)
   const ip = getClientIp(req);
-  const limit = checkRateLimit(`cadastro:${ip}`, { windowSec: 900, max: 10 });
+  const limit = checkRateLimit(`cadastro:${ip}`, { windowSec: 900, max: 5 });
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Muitas tentativas. Tente novamente em alguns minutos." },
@@ -44,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name: parsed.name,
         email: parsed.email,
@@ -55,12 +58,26 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Gerar e enviar token de verificação de email
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+    await prisma.emailVerificationToken.create({
+      data: { userId: user.id, token: tokenHash, expiresAt },
+    });
+
+    // Enviar email em background — não bloquear a resposta
+    sendVerificationEmail(user.email, user.name, rawToken).catch((err) =>
+      logger.error("sendVerificationEmail", err)
+    );
+
     return NextResponse.json({ message: "Conta criada com sucesso" }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 422 });
     }
-    console.error("[POST /api/auth/cadastro]", error);
+    logger.error("POST /api/auth/cadastro", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

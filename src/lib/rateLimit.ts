@@ -1,6 +1,7 @@
 // Rate limiter em memória com janela deslizante.
-// Funciona por instância do processo — adequado para o PM2 cluster de 2 instâncias
-// em um evento de ~200 usuários. Para escala maior, substituir por Redis.
+// Funciona por instância do processo. Com 2 instâncias PM2, os limites abaixo
+// são definidos pela metade do limite efetivo desejado (ex: max:5 → 10 tentativas reais).
+// Para escala maior ou múltiplos servidores, substituir por Redis.
 
 interface Window {
   count: number;
@@ -49,8 +50,14 @@ export function checkRateLimit(
   return { allowed: true };
 }
 
-/** Extrai o IP real da requisição, considerando proxy reverso (Nginx). */
+/**
+ * Extrai o IP real da requisição.
+ * Prioridade: CF-Connecting-IP (Cloudflare) → X-Forwarded-For (Nginx) → unknown.
+ * CF-Connecting-IP é injetado pelo Cloudflare e não pode ser falsificado por clientes.
+ */
 export function getClientIp(req: Request): string {
+  const cfIp = req.headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp.trim();
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
   return "unknown";
