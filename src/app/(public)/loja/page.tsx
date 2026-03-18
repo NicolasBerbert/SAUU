@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function LojaPage() {
   const products = await prisma.product.findMany({
     where: { active: true },

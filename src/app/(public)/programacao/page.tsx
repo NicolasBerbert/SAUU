@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { slotLabel } from "@/lib/utils";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 import { Button } from "@/components/ui/Button";
 
 const SLOTS = ["SLOT_19H00", "SLOT_20H45"] as const;

@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const statusLabel: Record<string, string> = {
   APPROVED: "Aprovado",
   PENDING: "Pendente",

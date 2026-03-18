@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { ProductManager } from "@/components/admin/ProductManager";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLojaPage() {
   const raw = await prisma.product.findMany({
     orderBy: { name: "asc" },

@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const typeLabel: Record<string, string> = {
   UNIFIL: "Unifil",
   UEL: "UEL",

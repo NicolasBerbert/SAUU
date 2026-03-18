@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { PresentationManager } from "@/components/admin/PresentationManager";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPalestrasPage() {
   const presentations = await prisma.presentation.findMany({
     orderBy: [{ day: "asc" }, { slot: "asc" }],
