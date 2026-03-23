@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { logger } from "@/lib/logger";
-import { verifyCsrf } from "@/lib/csrf";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Informe a senha atual"),
@@ -19,10 +18,6 @@ const changePasswordSchema = z.object({
 });
 
 export async function PUT(req: NextRequest) {
-  if (!verifyCsrf(req)) {
-    return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
-  }
-
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 

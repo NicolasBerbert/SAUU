@@ -3,16 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { criarSessaoInscricao } from "@/lib/stripe";
-import { verifyCsrf } from "@/lib/csrf";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
-  if (!verifyCsrf(req)) {
-    return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
-  }
-
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 

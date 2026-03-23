@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { criarSessaoPedidoLoja } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
-import { verifyCsrf } from "@/lib/csrf";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { sendAdminAlert } from "@/lib/alert";
@@ -24,10 +23,6 @@ const orderSchema = z.object({
 
 // POST /api/pedidos — cria pedido com reserva atômica de estoque
 export async function POST(req: NextRequest) {
-  if (!verifyCsrf(req)) {
-    return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
-  }
-
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
