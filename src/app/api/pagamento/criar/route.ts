@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { createEventRegistrationPreference } from "@/lib/mercadopago";
+import { criarSessaoInscricao } from "@/lib/stripe";
 import { verifyCsrf } from "@/lib/csrf";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
-import { sendAdminAlert } from "@/lib/alert";
 
-// POST /api/pagamento/criar - gera link de pagamento da inscrição no evento
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
@@ -18,7 +16,6 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  // Rate limit: 5 tentativas por usuário por 15 minutos (10 efetivos com PM2 ×2)
   const rl = checkRateLimit(`pagamento_criar:${session.user.id}`, { windowSec: 900, max: 5 });
   if (!rl.allowed) {
     return NextResponse.json(
@@ -27,7 +24,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Verificação de email obrigatória antes de pagar
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { id: true, name: true, email: true, emailVerified: true },
@@ -52,16 +48,14 @@ export async function POST(req: NextRequest) {
   const amount = Number(process.env.EVENT_REGISTRATION_PRICE ?? "50");
 
   try {
-    // Criar ou atualizar registro pendente
     const registration = await prisma.eventRegistration.upsert({
       where: { userId: session.user.id },
       update: { paymentStatus: "PENDING", amount },
       create: { userId: session.user.id, amount, paymentStatus: "PENDING" },
     });
 
-    const preference = await createEventRegistrationPreference({
+    const stripeSession = await criarSessaoInscricao({
       userId: session.user.id,
-      userName: user.name,
       userEmail: user.email,
       amount,
     });
@@ -75,14 +69,9 @@ export async function POST(req: NextRequest) {
       metadata: { amount, ip: getClientIp(req) },
     });
 
-    return NextResponse.json({ checkoutUrl: preference.init_point });
+    return NextResponse.json({ checkoutUrl: stripeSession.url });
   } catch (err) {
     logger.error("POST /api/pagamento/criar", err);
-    await sendAdminAlert(
-      "Falha ao criar preferência de pagamento de inscrição",
-      `Usuário: ${session.user.id}\nEmail: ${user.email}\nErro: ${err instanceof Error ? err.message : String(err)}`,
-      "ERRO"
-    );
     return NextResponse.json({ error: "Erro ao iniciar pagamento" }, { status: 500 });
   }
 }

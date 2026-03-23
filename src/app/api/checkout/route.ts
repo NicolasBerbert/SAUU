@@ -3,27 +3,31 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { createCombinedCheckoutPreference } from "@/lib/mercadopago";
+import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
 import { verifyCsrf } from "@/lib/csrf";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 import { sendAdminAlert } from "@/lib/alert";
 
-const checkoutSchema = z.object({
-  incluirInscricao: z.boolean(),
-  items: z.array(
-    z.object({
-      productId: z.string().cuid(),
-      quantity: z.number().int().positive().max(10),
-    })
-  ).max(20),
-}).refine(
-  (data) => data.incluirInscricao || data.items.length > 0,
-  { message: "O carrinho está vazio." }
-);
+const checkoutSchema = z
+  .object({
+    incluirInscricao: z.boolean(),
+    items: z
+      .array(
+        z.object({
+          productId: z.string().cuid(),
+          quantity: z.number().int().positive().max(10),
+        })
+      )
+      .max(20),
+  })
+  .refine((data) => data.incluirInscricao || data.items.length > 0, {
+    message: "O carrinho está vazio.",
+  });
 
-// POST /api/checkout — checkout unificado: inscrição e/ou produtos em um único pagamento.
+// POST /api/checkout — checkout unificado: inscrição e/ou produtos em um único pagamento
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
@@ -32,8 +36,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  // Rate limit: 10 tentativas por usuário por hora (5 por instância com PM2 ×2)
-  const rl = checkRateLimit(`checkout:${session.user.id}`, { windowSec: 3600, max: 5 });
+  const rl = checkRateLimit(`checkout:${session.user.id}`, { windowSec: 3600, max: 10 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Muitas tentativas. Aguarde antes de tentar novamente." },
@@ -49,14 +52,12 @@ export async function POST(req: NextRequest) {
   }
   const { incluirInscricao, items } = parsed;
 
-  // Busca dados do usuário
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { id: true, name: true, email: true, emailVerified: true },
   });
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
-  // Verificação de email obrigatória se incluir inscrição
   if (incluirInscricao && !user.emailVerified) {
     return NextResponse.json(
       { error: "Confirme seu e-mail antes de realizar o pagamento." },
@@ -64,13 +65,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Verifica se inscrição já existe aprovada (não pode pagar duas vezes)
   if (incluirInscricao) {
-    const registrationExistente = await prisma.eventRegistration.findUnique({
+    const inscricaoExistente = await prisma.eventRegistration.findUnique({
       where: { userId: session.user.id },
       select: { paymentStatus: true },
     });
-    if (registrationExistente?.paymentStatus === "APPROVED") {
+    if (inscricaoExistente?.paymentStatus === "APPROVED") {
       return NextResponse.json(
         { error: "Sua inscrição no evento já está confirmada." },
         { status: 409 }
@@ -80,14 +80,12 @@ export async function POST(req: NextRequest) {
 
   const registrationAmount = Number(process.env.EVENT_REGISTRATION_PRICE ?? "50");
 
-  // Busca e valida produtos
-  let products: Array<{ id: string; name: string; price: { toNumber(): number }; stock: number }> = [];
+  let products: Awaited<ReturnType<typeof prisma.product.findMany>> = [];
   if (items.length > 0) {
     const productIds = items.map((i) => i.productId);
     products = await prisma.product.findMany({
       where: { id: { in: productIds }, active: true },
     });
-
     if (products.length !== items.length) {
       return NextResponse.json(
         { error: "Um ou mais produtos não encontrados ou indisponíveis." },
@@ -98,17 +96,13 @@ export async function POST(req: NextRequest) {
 
   const shopTotal = items.reduce((sum, item) => {
     const product = products.find((p) => p.id === item.productId)!;
-    return sum + product.price.toNumber() * item.quantity;
+    return sum + Number(product.price) * item.quantity;
   }, 0);
-
-  const total = shopTotal + (incluirInscricao ? registrationAmount : 0);
 
   try {
     let orderId: string | null = null;
 
-    // Transação atômica: cria EventRegistration + Order + reserva estoque
     await prisma.$transaction(async (tx) => {
-      // Cria ou atualiza inscrição pendente
       if (incluirInscricao) {
         await tx.eventRegistration.upsert({
           where: { userId: session.user.id },
@@ -117,7 +111,6 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Reserva estoque e cria pedido
       if (items.length > 0) {
         for (const item of items) {
           const atualizado = await tx.product.updateMany({
@@ -138,7 +131,7 @@ export async function POST(req: NextRequest) {
               create: items.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
-                price: products.find((p) => p.id === item.productId)!.price.toNumber(),
+                price: products.find((p) => p.id === item.productId)!.price,
               })),
             },
           },
@@ -147,26 +140,45 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Cria preferência MP com todos os itens
-    const mpShopItems = items.map((item) => {
-      const product = products.find((p) => p.id === item.productId)!;
-      return {
-        id: product.id,
-        title: product.name,
-        quantity: item.quantity,
-        unit_price: product.price.toNumber(),
-      };
-    });
+    // Monta line_items do Stripe com todos os itens do carrinho
+    const lineItems: Stripe.Checkout.SessionCreateParams["line_items"] = [];
 
-    const preference = await createCombinedCheckoutPreference({
-      userId: session.user.id,
-      userName: user.name,
-      userEmail: user.email,
-      orderId,
-      includesRegistration: incluirInscricao,
-      registrationAmount,
-      shopItems: mpShopItems,
-      total,
+    if (incluirInscricao) {
+      lineItems.push({
+        price_data: {
+          currency: "brl",
+          product_data: { name: "Inscrição — SAUU Unifil" },
+          unit_amount: Math.round(registrationAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
+
+    for (const item of items) {
+      const product = products.find((p) => p.id === item.productId)!;
+      lineItems.push({
+        price_data: {
+          currency: "brl",
+          product_data: { name: product.name },
+          unit_amount: Math.round(Number(product.price) * 100),
+        },
+        quantity: item.quantity,
+      });
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
+    const stripeSession = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_email: user.email,
+      line_items: lineItems,
+      success_url: `${baseUrl}/checkout/sucesso`,
+      cancel_url: `${baseUrl}/checkout/cancelado`,
+      metadata: {
+        userId: session.user.id,
+        tipo: "combinado",
+        incluirInscricao: String(incluirInscricao),
+        orderId: orderId ?? "",
+      },
     });
 
     await audit({
@@ -175,16 +187,9 @@ export async function POST(req: NextRequest) {
       action: "CHECKOUT_INITIATED",
       entityId: orderId ?? session.user.id,
       entityType: orderId ? "Order" : "EventRegistration",
-      metadata: {
-        total,
-        incluirInscricao,
-        itemCount: items.length,
-        orderId,
-        ip: getClientIp(req),
-      },
+      metadata: { total: shopTotal + (incluirInscricao ? registrationAmount : 0), incluirInscricao, itemCount: items.length, ip: getClientIp(req) },
     });
 
-    // Alerta se algum produto esgotou após esta reserva
     if (items.length > 0) {
       const produtosZerados = await prisma.product.findMany({
         where: { id: { in: items.map((i) => i.productId) }, stock: 0, active: true },
@@ -200,12 +205,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ checkoutUrl: preference.init_point });
+    return NextResponse.json({ checkoutUrl: stripeSession.url });
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
-      const productName = error.message.replace("STOCK_INSUFFICIENT:", "");
       return NextResponse.json(
-        { error: `Estoque insuficiente para ${productName}` },
+        { error: `Estoque insuficiente para ${error.message.replace("STOCK_INSUFFICIENT:", "")}` },
         { status: 409 }
       );
     }

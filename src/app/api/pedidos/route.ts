@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { createShopOrderPreference } from "@/lib/mercadopago";
+import { criarSessaoPedidoLoja } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { verifyCsrf } from "@/lib/csrf";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -11,15 +11,18 @@ import { audit } from "@/lib/audit";
 import { sendAdminAlert } from "@/lib/alert";
 
 const orderSchema = z.object({
-  items: z.array(
-    z.object({
-      productId: z.string().cuid(),
-      quantity: z.number().int().positive().max(10),
-    })
-  ).min(1).max(20),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().cuid(),
+        quantity: z.number().int().positive().max(10),
+      })
+    )
+    .min(1)
+    .max(20),
 });
 
-// POST /api/pedidos - criar pedido com reserva atômica de estoque
+// POST /api/pedidos — cria pedido com reserva atômica de estoque
 export async function POST(req: NextRequest) {
   if (!verifyCsrf(req)) {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 403 });
@@ -28,8 +31,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  // Rate limit: 10 pedidos por usuário por hora (5 por instância com PM2 ×2)
-  const rl = checkRateLimit(`pedidos:${session.user.id}`, { windowSec: 3600, max: 5 });
+  const rl = checkRateLimit(`pedidos:${session.user.id}`, { windowSec: 3600, max: 10 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Muitos pedidos em pouco tempo. Aguarde antes de tentar novamente." },
@@ -45,7 +47,6 @@ export async function POST(req: NextRequest) {
   }
   const { items } = parsed;
 
-  // Buscar produtos ativos
   const productIds = items.map((i) => i.productId);
   const products = await prisma.product.findMany({
     where: { id: { in: productIds }, active: true },
@@ -61,11 +62,9 @@ export async function POST(req: NextRequest) {
   }, 0);
 
   try {
-    // Transação atômica: reserva de estoque + criação do pedido
-    // O estoque é decrementado na criação — não no webhook.
-    // Caso o pagamento seja rejeitado/cancelado, o webhook devolve o estoque.
+    // Reserva de estoque + criação do pedido em transação atômica.
+    // Se o pagamento for cancelado/expirar, o webhook devolve o estoque.
     const order = await prisma.$transaction(async (tx) => {
-      // Reservar estoque de cada item atomicamente
       for (const item of items) {
         const updated = await tx.product.updateMany({
           where: { id: item.productId, stock: { gte: item.quantity }, active: true },
@@ -97,23 +96,18 @@ export async function POST(req: NextRequest) {
       select: { name: true, email: true },
     });
 
-    const mpItems = items.map((item) => {
-      const product = products.find((p) => p.id === item.productId)!;
-      return {
-        id: product.id,
-        title: product.name,
-        quantity: item.quantity,
-        unit_price: Number(product.price),
-      };
-    });
-
-    const preference = await createShopOrderPreference({
+    const stripeSession = await criarSessaoPedidoLoja({
       userId: session.user.id,
-      userName: user!.name,
       userEmail: user!.email,
       orderId: order.id,
-      items: mpItems,
-      total,
+      itens: items.map((item) => {
+        const product = products.find((p) => p.id === item.productId)!;
+        return {
+          nome: product.name,
+          quantidade: item.quantity,
+          preco: Number(product.price),
+        };
+      }),
     });
 
     await audit({
@@ -122,15 +116,9 @@ export async function POST(req: NextRequest) {
       action: "ORDER_CREATED",
       entityId: order.id,
       entityType: "Order",
-      metadata: {
-        total,
-        itemCount: items.length,
-        ip: getClientIp(req),
-        productIds,
-      },
+      metadata: { total, itemCount: items.length, ip: getClientIp(req), productIds },
     });
 
-    // Alerta se algum produto zerou o estoque após esta reserva
     const produtosZerados = await prisma.product.findMany({
       where: { id: { in: productIds }, stock: 0, active: true },
       select: { name: true, id: true },
@@ -139,17 +127,16 @@ export async function POST(req: NextRequest) {
       const nomes = produtosZerados.map((p) => `• ${p.name} (${p.id})`).join("\n");
       await sendAdminAlert(
         "Produto(s) com estoque zerado",
-        `Os seguintes produtos esgotaram o estoque após um pedido:\n\n${nomes}\n\nPedido: ${order.id}`,
+        `Os seguintes produtos esgotaram após um pedido:\n\n${nomes}\n\nPedido: ${order.id}`,
         "AVISO"
       );
     }
 
-    return NextResponse.json({ orderId: order.id, checkoutUrl: preference.init_point });
+    return NextResponse.json({ orderId: order.id, checkoutUrl: stripeSession.url });
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
-      const productName = error.message.replace("STOCK_INSUFFICIENT:", "");
       return NextResponse.json(
-        { error: `Estoque insuficiente para ${productName}` },
+        { error: `Estoque insuficiente para ${error.message.replace("STOCK_INSUFFICIENT:", "")}` },
         { status: 409 }
       );
     }

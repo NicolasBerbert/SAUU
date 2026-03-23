@@ -6,7 +6,6 @@ import { UserType } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { verifyTotpCode, createPendingToken, verifyPendingToken } from "@/lib/totp";
 
-// Tipo especial para sessão aguardando 2FA
 const TOTP_PENDING = "TOTP_PENDING" as const;
 
 export const authOptions: NextAuthOptions = {
@@ -14,16 +13,16 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email:        { label: "Email",        type: "email"  },
+        email:        { label: "Email",        type: "email"    },
         password:     { label: "Senha",        type: "password" },
-        pendingToken: { label: "PendingToken", type: "text"   },
-        totpCode:     { label: "Código 2FA",   type: "text"   },
+        pendingToken: { label: "PendingToken", type: "text"     },
+        totpCode:     { label: "Código 2FA",   type: "text"     },
       },
       async authorize(credentials) {
-        // ── Caminho 2: completar 2FA (pendingToken + totpCode) ──────────────
+        // Caminho 2: completar 2FA (pendingToken + totpCode)
         if (credentials?.pendingToken && credentials?.totpCode) {
           const payload = verifyPendingToken(credentials.pendingToken);
-          if (!payload) return null; // token expirado ou adulterado
+          if (!payload) return null;
 
           const user = await prisma.user.findUnique({ where: { id: payload.userId } });
           if (!user || !user.active || user.type !== UserType.ADMIN) return null;
@@ -33,15 +32,14 @@ export const authOptions: NextAuthOptions = {
           return { id: user.id, name: user.name, email: user.email, type: user.type } as any;
         }
 
-        // ── Caminho 1: login normal (email + senha) ─────────────────────────
+        // Caminho 1: login normal (email + senha)
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Rate limit por e-mail: 5 por instância (10 efetivos com 2 instâncias PM2)
-        const limit = checkRateLimit(`login:${credentials.email.toLowerCase()}`, {
+        const rl = checkRateLimit(`login:${credentials.email.toLowerCase()}`, {
           windowSec: 900,
-          max: 5,
+          max: 10,
         });
-        if (!limit.allowed) return null;
+        if (!rl.allowed) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
@@ -96,6 +94,6 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 8 * 60 * 60, // 8 horas
+    maxAge: 8 * 60 * 60,
   },
 };
