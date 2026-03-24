@@ -35,7 +35,15 @@ export default async function HorasPage() {
         <div className="h-px w-8 bg-accent" />
         <span className="text-xs uppercase tracking-widest text-accent">Admin</span>
       </div>
-      <h1 className="text-3xl font-light text-primary mb-2">Horas por Usuário</h1>
+      <div className="flex items-end justify-between mb-2">
+        <h1 className="text-3xl font-light text-primary">Horas por Usuário</h1>
+        <a
+          href="/api/admin/exportar/horas"
+          className="text-xs uppercase tracking-widest border border-border text-muted hover:border-accent hover:text-accent transition-colors px-4 py-2"
+        >
+          Exportar CSV
+        </a>
+      </div>
       <p className="text-sm text-muted mb-10">
         Total de horas registradas por presença confirmada nas palestras. Usado para geração de certificados.
       </p>
