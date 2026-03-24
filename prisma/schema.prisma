@@ -109,6 +109,7 @@ model Presentation {
   imageUrl    String?
   day         Int
   slot        String   // horário livre, ex: "19:00", "20:30"
+  duration    Int      @default(90) // duração em minutos
   maxCapacity Int      @default(100)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())

@@ -12,6 +12,7 @@ interface Presentation {
   bio: string | null;
   day: number;
   slot: string;
+  duration: number;
   maxCapacity: number;
   active: boolean;
   _count: { slots: number };
@@ -23,6 +24,7 @@ interface FormState {
   bio: string;
   day: number;
   slot: string;
+  duration: number;
   maxCapacity: number;
 }
 
@@ -32,6 +34,7 @@ const defaultForm: FormState = {
   bio: "",
   day: 1,
   slot: "19:00",
+  duration: 90,
   maxCapacity: 50,
 };
 
@@ -51,6 +54,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
       bio: p.bio ?? "",
       day: p.day,
       slot: p.slot,
+      duration: p.duration,
       maxCapacity: p.maxCapacity,
     });
     setShowForm(true);
@@ -115,6 +119,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
           bio: p.bio ?? "",
           day: p.day,
           slot: p.slot,
+          duration: p.duration,
           maxCapacity: p.maxCapacity,
           active: !p.active,
         }),
@@ -206,6 +211,17 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
                 className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
               />
             </div>
+            <div>
+              <label className="block text-xs text-muted mb-1">Duração (minutos)</label>
+              <input
+                required
+                type="number"
+                min={1}
+                value={form.duration}
+                onChange={(e) => setForm((f) => ({ ...f, duration: Number(e.target.value) }))}
+                className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
+              />
+            </div>
             <div className="sm:col-span-2">
               <label className="block text-xs text-muted mb-1">Bio / Descrição (opcional)</label>
               <textarea
@@ -252,7 +268,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
                   )}
                 </div>
                 <p className="text-sm text-primary font-medium truncate">{p.title}</p>
-                <p className="text-xs text-muted">{p.speaker} · {p._count.slots}/{p.maxCapacity} inscritos</p>
+                <p className="text-xs text-muted">{p.speaker} · {p._count.slots}/{p.maxCapacity} inscritos · {p.duration}min</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button

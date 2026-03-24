@@ -93,6 +93,7 @@ export const presentationSchema = z.object({
   imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   day: z.number().int().min(1).max(5),
   slot: z.string().min(1, "Horário obrigatório"),
+  duration: z.number().int().positive("Duração deve ser positiva"),
   maxCapacity: z.number().int().positive("Vagas deve ser positivo"),
 });
 
