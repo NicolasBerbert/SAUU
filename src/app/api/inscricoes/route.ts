@@ -13,14 +13,6 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  // Verificar se pagou a inscrição
-  const eventReg = await prisma.eventRegistration.findUnique({
-    where: { userId: session.user.id },
-  });
-  if (eventReg?.paymentStatus !== "APPROVED") {
-    return NextResponse.json({ error: "Inscrição no evento não confirmada" }, { status: 403 });
-  }
-
   const { presentationId } = inscricaoSchema.parse(await req.json());
 
   // Verificar vagas

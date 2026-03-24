@@ -14,14 +14,9 @@ datasource db {
 
 enum UserType {
   UNIFIL   // Aluno da Unifil (@edu.unifil.br)
-  UEL      // Aluno da UEL
+  EXTERNO  // Aluno de instituição externa (outras faculdades de arquitetura)
   FORMADO  // Já formado
   ADMIN
-}
-
-enum SlotTime {
-  SLOT_19H00  // 19:00
-  SLOT_20H45  // 20:45
 }
 
 enum PaymentStatus {
@@ -113,7 +108,7 @@ model Presentation {
   bio         String?
   imageUrl    String?
   day         Int
-  slot        SlotTime
+  slot        String   // horário livre, ex: "19:00", "20:30"
   maxCapacity Int      @default(100)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -121,15 +116,15 @@ model Presentation {
 
   slots PresentationSlot[]
 
-  @@unique([day, slot])
   @@index([day])
 }
 
 model PresentationSlot {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   presentationId String
-  createdAt      DateTime @default(now())
+  attendedAt     DateTime? // preenchido pelo admin no dia da palestra
+  createdAt      DateTime  @default(now())
 
   user         User         @relation(fields: [userId], references: [id])
   presentation Presentation @relation(fields: [presentationId], references: [id])
@@ -187,7 +182,7 @@ model OrderItem {
 }
 
 // ─────────────────────────────────────────────
-// CERTIFICADOS (apenas para alunos UEL)
+// CERTIFICADOS (apenas para alunos de instituição externa)
 // ─────────────────────────────────────────────
 
 model Certificate {

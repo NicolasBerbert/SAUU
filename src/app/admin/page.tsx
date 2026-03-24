@@ -53,6 +53,7 @@ export default async function AdminPage() {
         <div className="flex flex-col gap-px bg-border">
           {[
             { href: "/admin/palestras", label: "Gerenciar palestras", desc: "Adicionar, editar e remover palestras" },
+            { href: "/admin/presenca", label: "Lista de presença", desc: "Registrar presença por palestra" },
             { href: "/admin/loja", label: "Gerenciar loja", desc: "Adicionar e gerenciar produtos" },
             { href: "/admin/usuarios", label: "Ver usuários", desc: "Lista de participantes cadastrados" },
             { href: "/admin/pedidos", label: "Ver pedidos", desc: "Pedidos da loja e retiradas" },

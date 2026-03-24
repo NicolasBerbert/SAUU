@@ -1,4 +1,4 @@
-import { PrismaClient, UserType, SlotTime } from "@prisma/client";
+import { PrismaClient, UserType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -40,16 +40,16 @@ async function main() {
   // Palestras placeholder
   // ─────────────────────────────────────────────
   const presentations = [
-    { day: 1, slot: SlotTime.SLOT_19H00, title: "PLACEHOLDER - Palestra Dia 1 - 19h", speaker: "PLACEHOLDER" },
-    { day: 1, slot: SlotTime.SLOT_20H45, title: "PLACEHOLDER - Palestra Dia 1 - 20h45", speaker: "PLACEHOLDER" },
-    { day: 2, slot: SlotTime.SLOT_19H00, title: "PLACEHOLDER - Palestra Dia 2 - 19h", speaker: "PLACEHOLDER" },
-    { day: 2, slot: SlotTime.SLOT_20H45, title: "PLACEHOLDER - Palestra Dia 2 - 20h45", speaker: "PLACEHOLDER" },
-    { day: 3, slot: SlotTime.SLOT_19H00, title: "PLACEHOLDER - Palestra Dia 3 - 19h", speaker: "PLACEHOLDER" },
-    { day: 3, slot: SlotTime.SLOT_20H45, title: "PLACEHOLDER - Palestra Dia 3 - 20h45", speaker: "PLACEHOLDER" },
-    { day: 4, slot: SlotTime.SLOT_19H00, title: "PLACEHOLDER - Palestra Dia 4 - 19h", speaker: "PLACEHOLDER" },
-    { day: 4, slot: SlotTime.SLOT_20H45, title: "PLACEHOLDER - Palestra Dia 4 - 20h45", speaker: "PLACEHOLDER" },
-    { day: 5, slot: SlotTime.SLOT_19H00, title: "PLACEHOLDER - Palestra Dia 5 - 19h", speaker: "PLACEHOLDER" },
-    { day: 5, slot: SlotTime.SLOT_20H45, title: "PLACEHOLDER - Palestra Dia 5 - 20h45", speaker: "PLACEHOLDER" },
+    { day: 1, slot: "19:00", title: "PLACEHOLDER - Palestra Dia 1 - 19h", speaker: "PLACEHOLDER" },
+    { day: 1, slot: "20:30", title: "PLACEHOLDER - Palestra Dia 1 - 20h30", speaker: "PLACEHOLDER" },
+    { day: 2, slot: "19:00", title: "PLACEHOLDER - Palestra Dia 2 - 19h", speaker: "PLACEHOLDER" },
+    { day: 2, slot: "20:30", title: "PLACEHOLDER - Palestra Dia 2 - 20h30", speaker: "PLACEHOLDER" },
+    { day: 3, slot: "19:00", title: "PLACEHOLDER - Palestra Dia 3 - 19h", speaker: "PLACEHOLDER" },
+    { day: 3, slot: "20:30", title: "PLACEHOLDER - Palestra Dia 3 - 20h30", speaker: "PLACEHOLDER" },
+    { day: 4, slot: "19:00", title: "PLACEHOLDER - Palestra Dia 4 - 19h", speaker: "PLACEHOLDER" },
+    { day: 4, slot: "20:30", title: "PLACEHOLDER - Palestra Dia 4 - 20h30", speaker: "PLACEHOLDER" },
+    { day: 5, slot: "19:00", title: "PLACEHOLDER - Palestra Dia 5 - 19h", speaker: "PLACEHOLDER" },
+    { day: 5, slot: "20:30", title: "PLACEHOLDER - Palestra Dia 5 - 20h30", speaker: "PLACEHOLDER" },
   ];
 
   for (const p of presentations) {

@@ -1,11 +1,8 @@
 import { prisma } from "@/lib/db";
-import { slotLabel } from "@/lib/utils";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 import { Button } from "@/components/ui/Button";
-
-const SLOTS = ["SLOT_19H00", "SLOT_20H45"] as const;
 
 export default async function ProgramacaoPage() {
   const presentations = await prisma.presentation.findMany({
@@ -66,57 +63,23 @@ export default async function ProgramacaoPage() {
 
                 {/* Palestras */}
                 <div className="flex flex-col gap-px bg-border">
-                  {SLOTS.map((slot) => {
-                    const p = dayPresentations.find((x) => x.slot === slot);
-
-                    if (!p) {
-                      return (
-                        <div key={slot} className="bg-surface px-6 py-6">
-                          <p className="text-xs text-muted">
-                            {slotLabel(slot)} — A confirmar
-                          </p>
-                        </div>
-                      );
-                    }
-
+                  {dayPresentations.map((p) => {
                     const spotsLeft = p.maxCapacity - p._count.slots;
-
                     return (
-                      <div key={slot} className="bg-surface px-6 py-6 flex flex-col sm:flex-row sm:items-start gap-6">
-                        {/* Horário */}
+                      <div key={p.id} className="bg-surface px-6 py-6 flex flex-col sm:flex-row sm:items-start gap-6">
                         <div className="shrink-0 w-16">
-                          <span className="text-xs font-medium text-accent">
-                            {slotLabel(slot)}
-                          </span>
+                          <span className="text-xs font-medium text-accent">{p.slot}</span>
                         </div>
-
-                        {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-medium text-primary mb-1">
-                            {p.title}
-                          </h3>
+                          <h3 className="text-base font-medium text-primary mb-1">{p.title}</h3>
                           <p className="text-sm text-muted mb-2">{p.speaker}</p>
                           {p.bio && (
-                            <p className="text-xs text-muted leading-relaxed line-clamp-2">
-                              {p.bio}
-                            </p>
+                            <p className="text-xs text-muted leading-relaxed line-clamp-2">{p.bio}</p>
                           )}
                         </div>
-
-                        {/* Vagas */}
                         <div className="shrink-0 flex items-center gap-3 sm:flex-col sm:items-end">
-                          <span
-                            className={`text-xs ${
-                              spotsLeft <= 0
-                                ? "text-danger"
-                                : spotsLeft <= 10
-                                ? "text-accent"
-                                : "text-muted"
-                            }`}
-                          >
-                            {spotsLeft <= 0
-                              ? "Esgotado"
-                              : `${spotsLeft} vagas`}
+                          <span className={`text-xs ${spotsLeft <= 0 ? "text-danger" : spotsLeft <= 10 ? "text-accent" : "text-muted"}`}>
+                            {spotsLeft <= 0 ? "Esgotado" : `${spotsLeft} vagas`}
                           </span>
                         </div>
                       </div>

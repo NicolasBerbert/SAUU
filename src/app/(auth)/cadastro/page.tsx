@@ -9,9 +9,9 @@ const tipos = [
   },
   {
     href: "/cadastro/uel",
-    label: "Aluno UEL",
-    description: "Sou estudante da Universidade Estadual de Londrina",
-    tag: "UEL",
+    label: "Instituição Externa",
+    description: "Sou estudante de outra faculdade de arquitetura (não Unifil)",
+    tag: "Externo",
   },
   {
     href: "/cadastro/formado",

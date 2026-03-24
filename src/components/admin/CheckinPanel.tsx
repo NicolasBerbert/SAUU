@@ -23,7 +23,7 @@ const statusLabel: Record<string, { label: string; cor: string }> = {
 
 const tipoLabel: Record<string, string> = {
   UNIFIL: "Unifil",
-  UEL: "UEL",
+  EXTERNO: "Ext.",
   FORMADO: "Formado",
 };
 

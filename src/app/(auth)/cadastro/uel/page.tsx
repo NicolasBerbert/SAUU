@@ -16,11 +16,11 @@ export default function CadastroUELPage() {
         </Link>
         <div className="flex items-center gap-3 mb-6">
           <div className="h-px w-8 bg-accent" />
-          <span className="text-xs uppercase tracking-widest text-accent">Aluno UEL</span>
+          <span className="text-xs uppercase tracking-widest text-accent">Instituição Externa</span>
         </div>
         <h1 className="text-3xl font-light text-primary mb-2">Criar conta</h1>
         <p className="text-sm text-muted">
-          Informe seu Registro Acadêmico da UEL.
+          Informe seu Registro Acadêmico da sua instituição.
         </p>
       </div>
 

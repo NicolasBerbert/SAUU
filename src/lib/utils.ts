@@ -12,6 +12,6 @@ export function formatCurrency(value: number | string): string {
   }).format(Number(value));
 }
 
-export function slotLabel(slot: "SLOT_19H00" | "SLOT_20H45"): string {
-  return slot === "SLOT_19H00" ? "19h00" : "20h45";
+export function slotLabel(slot: string): string {
+  return slot;
 }

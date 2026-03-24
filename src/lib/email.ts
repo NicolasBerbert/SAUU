@@ -76,7 +76,7 @@ export async function sendPresentationConfirmationEmail(
   const listHtml = presentations
     .map(
       (p) =>
-        `<li><strong>Dia ${p.day} - ${p.slot === "SLOT_19H00" ? "19h00" : "20h45"}</strong>: ${p.title}</li>`
+        `<li><strong>Dia ${p.day} - ${p.slot}</strong>: ${p.title}</li>`
     )
     .join("");
 

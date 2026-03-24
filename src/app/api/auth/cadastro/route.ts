@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { UserType } from "@prisma/client";
 import {
   unifilRegisterSchema,
-  uelRegisterSchema,
+  externoRegisterSchema,
   graduateRegisterSchema,
 } from "@/lib/validations";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
     let parsed;
     if (type === UserType.UNIFIL) {
       parsed = unifilRegisterSchema.parse(body);
-    } else if (type === UserType.UEL) {
-      parsed = uelRegisterSchema.parse(body);
+    } else if (type === "EXTERNO") {
+      parsed = externoRegisterSchema.parse(body);
     } else if (type === UserType.FORMADO) {
       parsed = graduateRegisterSchema.parse(body);
     } else {
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         phone: parsed.phone,
         password: hashedPassword,
         institution: parsed.institution,
-        type: parsed.type,
+        type: parsed.type as UserType,
       },
     });
 

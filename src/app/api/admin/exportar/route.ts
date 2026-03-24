@@ -15,7 +15,7 @@ function toCSV(rows: string[][]): string {
 }
 
 // GET /api/admin/exportar — exporta inscritos em CSV para uso no dia do evento
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.type !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     const rows = users.map((u) => {
       const presentations = u.presentationSlots
-        .map((s) => `Dia ${s.presentation.day} ${s.presentation.slot === "SLOT_19H00" ? "19h00" : "20h45"}: ${s.presentation.title}`)
+        .map((s) => `Dia ${s.presentation.day} ${s.presentation.slot}: ${s.presentation.title}`)
         .join(" | ");
 
       return [

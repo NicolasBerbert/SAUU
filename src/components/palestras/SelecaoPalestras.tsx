@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { cn, slotLabel } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface Presentation {
   id: string;
@@ -10,7 +10,7 @@ interface Presentation {
   speaker: string;
   bio: string | null;
   day: number;
-  slot: "SLOT_19H00" | "SLOT_20H45";
+  slot: string;
   maxCapacity: number;
   spotsLeft: number;
   isUserRegistered: boolean;
@@ -28,9 +28,7 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
 
   const registeredCount = presentations.filter((p) => p.isUserRegistered).length;
 
-  // Agrupar por dia e slot
   const days = [1, 2, 3, 4, 5];
-  const slots = ["SLOT_19H00", "SLOT_20H45"] as const;
 
   async function toggleInscricao(presentation: Presentation) {
     setError(null);
@@ -90,24 +88,13 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
 
               {/* Palestras do dia */}
               <div className="flex flex-col gap-px bg-border">
-                {slots.map((slot) => {
-                  const p = dayPresentations.find((x) => x.slot === slot);
-                  if (!p) {
-                    return (
-                      <div key={slot} className="bg-surface px-6 py-5">
-                        <p className="text-xs text-muted">
-                          {slotLabel(slot)} — Palestra a confirmar
-                        </p>
-                      </div>
-                    );
-                  }
-
+                {dayPresentations.map((p) => {
                   const isLoading = loadingId === p.id;
                   const isFull = p.spotsLeft <= 0 && !p.isUserRegistered;
 
                   return (
                     <div
-                      key={slot}
+                      key={p.id}
                       className={cn(
                         "bg-surface px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4",
                         p.isUserRegistered && "bg-surface-2"
@@ -115,9 +102,7 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs text-muted shrink-0">
-                            {slotLabel(slot)}
-                          </span>
+                          <span className="text-xs text-muted shrink-0">{p.slot}</span>
                           {p.isUserRegistered && (
                             <span className="text-xs text-accent">— inscrito</span>
                           )}
@@ -129,19 +114,9 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
                       </div>
 
                       <div className="flex items-center gap-4 shrink-0">
-                        {/* Vagas */}
-                        <span
-                          className={cn(
-                            "text-xs",
-                            isFull ? "text-danger" : "text-muted"
-                          )}
-                        >
-                          {isFull
-                            ? "Esgotado"
-                            : `${p.spotsLeft} vaga${p.spotsLeft !== 1 ? "s" : ""}`}
+                        <span className={cn("text-xs", isFull ? "text-danger" : "text-muted")}>
+                          {isFull ? "Esgotado" : `${p.spotsLeft} vaga${p.spotsLeft !== 1 ? "s" : ""}`}
                         </span>
-
-                        {/* Botão */}
                         <button
                           onClick={() => toggleInscricao(p)}
                           disabled={isLoading || (isFull && !p.isUserRegistered) || isPending}
@@ -152,11 +127,7 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
                               : "border-accent text-accent hover:bg-accent hover:text-background"
                           )}
                         >
-                          {isLoading
-                            ? "..."
-                            : p.isUserRegistered
-                            ? "Cancelar"
-                            : "Inscrever-se"}
+                          {isLoading ? "..." : p.isUserRegistered ? "Cancelar" : "Inscrever-se"}
                         </button>
                       </div>
                     </div>

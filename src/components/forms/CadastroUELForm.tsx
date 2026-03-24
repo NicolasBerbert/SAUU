@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { uelRegisterSchema, type UELRegisterInput } from "@/lib/validations";
+import { externoRegisterSchema, type ExternoRegisterInput } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
@@ -18,12 +18,12 @@ export function CadastroUELForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<UELRegisterInput>({
-    resolver: zodResolver(uelRegisterSchema),
-    defaultValues: { type: "UEL", institution: "UEL" },
+  } = useForm<ExternoRegisterInput>({
+    resolver: zodResolver(externoRegisterSchema),
+    defaultValues: { type: "EXTERNO" as const, institution: "" },
   });
 
-  async function onSubmit(data: UELRegisterInput) {
+  async function onSubmit(data: ExternoRegisterInput) {
     setServerError("");
     const res = await fetch("/api/auth/cadastro", {
       method: "POST",
@@ -60,7 +60,7 @@ export function CadastroUELForm() {
         <Input
           id="email"
           type="email"
-          placeholder="seunome@uel.br"
+          placeholder="seunome@exemplo.com"
           error={!!errors.email}
           {...register("email")}
         />
@@ -85,7 +85,7 @@ export function CadastroUELForm() {
         <Label htmlFor="ra">Registro Acadêmico (RA)</Label>
         <Input
           id="ra"
-          placeholder="Seu RA da UEL"
+          placeholder="Seu Registro Acadêmico"
           error={!!errors.ra}
           {...register("ra")}
         />

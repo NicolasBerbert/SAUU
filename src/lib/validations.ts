@@ -36,10 +36,10 @@ export const unifilRegisterSchema = baseRegisterSchema
     path: ["confirmPassword"],
   });
 
-export const uelRegisterSchema = baseRegisterSchema
+export const externoRegisterSchema = baseRegisterSchema
   .extend({
-    type: z.literal(UserType.UEL),
-    ra: z.string().min(5, "RA inválido"), // Registro Acadêmico UEL
+    type: z.literal("EXTERNO" as const),
+    ra: z.string().min(5, "RA inválido"), // Registro Acadêmico da instituição
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Senhas não coincidem",
@@ -92,12 +92,12 @@ export const presentationSchema = z.object({
   bio: z.string().optional(),
   imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   day: z.number().int().min(1).max(5),
-  slot: z.enum(["SLOT_19H00", "SLOT_20H45"]),
+  slot: z.string().min(1, "Horário obrigatório"),
   maxCapacity: z.number().int().positive("Vagas deve ser positivo"),
 });
 
 export type UnifliRegisterInput = z.infer<typeof unifilRegisterSchema>;
-export type UELRegisterInput = z.infer<typeof uelRegisterSchema>;
+export type ExternoRegisterInput = z.infer<typeof externoRegisterSchema>;
 export type GraduateRegisterInput = z.infer<typeof graduateRegisterSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ProductInput = z.infer<typeof productSchema>;

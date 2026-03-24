@@ -11,7 +11,7 @@ interface Presentation {
   speaker: string;
   bio: string | null;
   day: number;
-  slot: "SLOT_19H00" | "SLOT_20H45";
+  slot: string;
   maxCapacity: number;
   active: boolean;
   _count: { slots: number };
@@ -22,7 +22,7 @@ interface FormState {
   speaker: string;
   bio: string;
   day: number;
-  slot: "SLOT_19H00" | "SLOT_20H45";
+  slot: string;
   maxCapacity: number;
 }
 
@@ -31,7 +31,7 @@ const defaultForm: FormState = {
   speaker: "",
   bio: "",
   day: 1,
-  slot: "SLOT_19H00",
+  slot: "19:00",
   maxCapacity: 50,
 };
 
@@ -129,7 +129,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
     <div>
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-6">
-        <p className="text-xs text-muted">Grade: 5 dias × 2 horários = 10 palestras</p>
+        <p className="text-xs text-muted">Palestras cadastradas: {initial.length}</p>
         <Button
           variant={showForm && !editingId ? "secondary" : "primary"}
           className="text-xs tracking-widest uppercase"
@@ -197,15 +197,14 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-muted mb-1">Horário</label>
-              <select
+              <label className="block text-xs text-muted mb-1">Horário (ex: 19:00, 20:30)</label>
+              <input
+                required
                 value={form.slot}
-                onChange={(e) => setForm((f) => ({ ...f, slot: e.target.value as FormState["slot"] }))}
+                onChange={(e) => setForm((f) => ({ ...f, slot: e.target.value }))}
+                placeholder="19:00"
                 className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
-              >
-                <option value="SLOT_19H00">19h00</option>
-                <option value="SLOT_20H45">20h45</option>
-              </select>
+              />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs text-muted mb-1">Bio / Descrição (opcional)</label>

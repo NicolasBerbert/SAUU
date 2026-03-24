@@ -1,4 +1,4 @@
-import { UserType, PaymentStatus, OrderStatus, SlotTime } from "@prisma/client";
+import { UserType, PaymentStatus, OrderStatus } from "@prisma/client";
 import "next-auth";
 
 // ─────────────────────────────────────────────
@@ -27,7 +27,7 @@ declare module "next-auth/jwt" {
 // Tipos de domínio
 // ─────────────────────────────────────────────
 
-export type { UserType, PaymentStatus, OrderStatus, SlotTime };
+export type { UserType, PaymentStatus, OrderStatus };
 
 export interface PresentationWithCount {
   id: string;
@@ -36,7 +36,7 @@ export interface PresentationWithCount {
   bio: string | null;
   imageUrl: string | null;
   day: number;
-  slot: SlotTime;
+  slot: string;
   maxCapacity: number;
   _count: { slots: number };
   spotsLeft: number;
@@ -57,7 +57,7 @@ export interface UserDashboard {
       title: string;
       speaker: string;
       day: number;
-      slot: SlotTime;
+      slot: string;
     };
   }>;
 }

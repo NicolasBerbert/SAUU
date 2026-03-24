@@ -3,14 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-// POST /api/certificados - emitir certificado (apenas alunos UEL com inscrição aprovada)
+// POST /api/certificados - emitir certificado (apenas alunos de instituição externa com inscrição aprovada)
 export async function POST() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-  if (session.user.type !== "UEL") {
+  if ((session.user.type as string) !== "EXTERNO") {
     return NextResponse.json(
-      { error: "Certificados disponíveis apenas para alunos UEL" },
+      { error: "Certificados disponíveis apenas para alunos de instituição externa" },
       { status: 403 }
     );
   }
