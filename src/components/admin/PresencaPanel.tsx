@@ -96,7 +96,7 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
                             : "border-border text-muted hover:border-accent hover:text-accent"
                         )}
                       >
-                        {carregando ? "..." : presente ? "Presente" : "Ausente"}
+                        {carregando ? "..." : presente ? "Confirmado" : "Confirmar"}
                       </button>
                     </div>
                   );
