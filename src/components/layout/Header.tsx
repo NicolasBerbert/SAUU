@@ -57,6 +57,7 @@ export function Header({ showLoja = true }: { showLoja?: boolean }) {
             {[
               { href: "/", label: "Início" },
               { href: "/programacao", label: "Programação" },
+              { href: "/palestrantes", label: "Palestrantes" },
               ...(showLoja ? [{ href: "/loja", label: "Loja" }] : []),
             ].map(({ href, label }) => (
               <Link
