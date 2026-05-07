@@ -107,19 +107,19 @@ export default async function HomePage() {
             {/* Right — portrait */}
             <div className="hidden flex-col items-end gap-8 md:flex">
               <div
-                className="relative overflow-hidden"
                 style={{
                   width: "280px",
-                  aspectRatio: "320/240",
+                  height: "340px",
+                  position: "relative",
                   animation: "floaty 8s ease-in-out infinite",
-                  filter: "drop-shadow(0 18px 36px rgba(50,49,47,0.18))",
+                  filter: "drop-shadow(0 18px 36px rgba(50,49,47,0.22))",
                 }}
               >
                 <Image
                   src="/lina-portrait.png"
                   alt="Lina Bo Bardi"
                   fill
-                  className="object-cover"
+                  className="object-contain object-bottom"
                 />
               </div>
               <div className="text-right">
@@ -167,25 +167,26 @@ export default async function HomePage() {
             </svg>
           </div>
 
-          {/* Scroll cue */}
-          <div
-            className="absolute bottom-12 left-0 flex flex-col items-start gap-3.5"
-            style={{ fontSize: "10px", letterSpacing: "0.32em", textTransform: "uppercase", color: "var(--muted)" }}
-          >
-            <span
-              className="block w-px"
-              style={{
-                height: "46px",
-                background: "linear-gradient(to bottom, var(--red), transparent)",
-                animation: "dropline 2.4s ease-in-out infinite",
-              }}
-            />
-          </div>
+        </div>
+
+        {/* Scroll cue — anchored to the 92vh hero section bottom */}
+        <div
+          className="absolute bottom-12 left-8 flex flex-col items-start gap-3.5"
+          style={{ fontSize: "10px", letterSpacing: "0.32em", textTransform: "uppercase", color: "var(--muted)" }}
+        >
+          <span
+            className="block w-px"
+            style={{
+              height: "46px",
+              background: "linear-gradient(to bottom, var(--red), transparent)",
+              animation: "dropline 2.4s ease-in-out infinite",
+            }}
+          />
         </div>
       </section>
 
       {/* ── NUMBERS ── */}
-      <div className="mx-auto max-w-[1320px] px-8">
+      <div className="mx-auto max-w-[1320px] px-8 mt-20">
         <div
           className="grid grid-cols-2 gap-px sm:grid-cols-4"
           style={{ background: "var(--line)", border: "1px solid var(--line)" }}
@@ -242,11 +243,9 @@ export default async function HomePage() {
               </h2>
             </div>
             <p className="self-end text-[17px] leading-[1.65] text-primary md:max-w-[620px]">
-              A CLBB — Comissão Lina Bo Bardi — é formada por estudantes dos
-              cursos de Arquitetura e Urbanismo e de Engenharia Civil da Unifil.
-              Em cinco noites, abrimos o auditório para o encontro entre quem
-              projeta, quem constrói e quem está aprendendo a transformar a
-              cidade.
+              A semana acadêmica integrada Unifil, organizada pela Comissão Lina Bo Bardi,
+              traz em 2026 a junção dos saberes da Arquitetura e Urbanismo e Engenharia Civil,
+              para uma experiência ainda mais enriquecedora.
             </p>
           </div>
 

@@ -79,6 +79,7 @@ export const productSchema = z.object({
   price: z.number().positive("Preço deve ser positivo"),
   stock: z.number().int().min(0, "Estoque não pode ser negativo"),
   imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  sizes: z.string().optional().or(z.literal("")), // comma-separated sizes
   active: z.boolean().default(true),
 });
 
@@ -95,6 +96,7 @@ export const presentationSchema = z.object({
   slot: z.string().min(1, "Horário obrigatório"),
   duration: z.number().int().positive("Duração deve ser positiva"),
   maxCapacity: z.number().int().positive("Vagas deve ser positivo"),
+  active: z.boolean().optional(),
 });
 
 // Alias for backwards compatibility with existing references to "uel"

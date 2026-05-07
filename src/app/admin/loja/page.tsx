@@ -8,7 +8,11 @@ export default async function AdminLojaPage() {
     orderBy: { name: "asc" },
   });
 
-  const products = raw.map((p) => ({ ...p, price: p.price.toNumber() }));
+  const products = raw.map((p) => ({
+    ...p,
+    price: p.price.toNumber(),
+    sizes: (p as Record<string, unknown>).sizes as string | null ?? null,
+  }));
 
   return (
     <div>

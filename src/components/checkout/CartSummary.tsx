@@ -31,7 +31,7 @@ export function CartSummary({
           <div className="px-6 py-5">
             <label className="flex items-center justify-between gap-4 cursor-pointer">
               <div>
-                <p className="text-sm text-primary mb-0.5">SAUU — Semana de Arquitetura Unifil</p>
+                <p className="text-sm text-primary mb-0.5">SAUU + SEC</p>
                 <p className="text-xs text-muted">Acesso completo: 5 dias de palestras</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -66,15 +66,18 @@ export function CartSummary({
           </div>
           <div className="divide-y divide-border">
             {cart.items.map((item) => (
-              <div key={item.productId} className="px-6 py-4 flex items-center justify-between gap-4">
+              <div key={item.key} className="px-6 py-4 flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-primary truncate">{item.name}</p>
-                  <p className="text-xs text-muted">{formatCurrency(item.price)} × {item.quantity}</p>
+                  <p className="text-xs text-muted">
+                    {item.size && <span className="mr-2 uppercase">Tam: {item.size}</span>}
+                    {formatCurrency(item.price)} × {item.quantity}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="flex items-center border border-border">
                     <button
-                      onClick={() => setQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => setQuantity(item.key, item.quantity - 1)}
                       className="px-2 py-1 text-xs text-muted hover:text-primary transition-colors"
                       aria-label="Diminuir quantidade"
                     >
@@ -82,7 +85,7 @@ export function CartSummary({
                     </button>
                     <span className="px-2 text-xs text-primary w-6 text-center">{item.quantity}</span>
                     <button
-                      onClick={() => setQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => setQuantity(item.key, item.quantity + 1)}
                       disabled={item.quantity >= item.stock}
                       className="px-2 py-1 text-xs text-muted hover:text-primary transition-colors disabled:opacity-40"
                       aria-label="Aumentar quantidade"
@@ -94,7 +97,7 @@ export function CartSummary({
                     {formatCurrency(item.price * item.quantity)}
                   </span>
                   <button
-                    onClick={() => removeFromCart(item.productId)}
+                    onClick={() => removeFromCart(item.key)}
                     className="text-muted hover:text-danger transition-colors text-xs"
                     aria-label="Remover"
                   >

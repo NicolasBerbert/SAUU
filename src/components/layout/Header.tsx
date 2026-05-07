@@ -83,7 +83,7 @@ export function Header() {
               <>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="text-[12px] uppercase tracking-[0.18em] text-primary opacity-75 transition-all hover:text-accent hover:opacity-100"
+                  className="mr-2 text-[12px] uppercase tracking-[0.18em] text-primary opacity-75 transition-all hover:text-accent hover:opacity-100"
                 >
                   Sair
                 </button>

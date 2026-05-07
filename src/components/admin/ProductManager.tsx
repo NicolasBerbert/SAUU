@@ -13,6 +13,7 @@ interface Product {
   price: number;
   stock: number;
   imageUrl: string | null;
+  sizes: string | null;
   active: boolean;
 }
 
@@ -22,6 +23,7 @@ interface FormState {
   price: string;
   stock: string;
   imageUrl: string;
+  sizes: string;
   active: boolean;
 }
 
@@ -31,6 +33,7 @@ const defaultForm: FormState = {
   price: "",
   stock: "0",
   imageUrl: "",
+  sizes: "",
   active: true,
 };
 
@@ -54,6 +57,7 @@ export function ProductManager({ initial }: { initial: Product[] }) {
       price: String(p.price),
       stock: String(p.stock),
       imageUrl: p.imageUrl ?? "",
+      sizes: p.sizes ?? "",
       active: p.active,
     });
     setImagePreview(p.imageUrl ?? null);
@@ -111,6 +115,7 @@ export function ProductManager({ initial }: { initial: Product[] }) {
       price: Number(form.price),
       stock: Number(form.stock),
       imageUrl: form.imageUrl || undefined,
+      sizes: form.sizes || undefined,
       active: form.active,
     };
 
@@ -159,6 +164,7 @@ export function ProductManager({ initial }: { initial: Product[] }) {
           price: p.price,
           stock: p.stock,
           imageUrl: p.imageUrl,
+          sizes: p.sizes,
           active: !p.active,
         }),
       });
@@ -249,6 +255,23 @@ export function ProductManager({ initial }: { initial: Product[] }) {
               />
             </div>
 
+            {/* Tamanhos */}
+            <div className="sm:col-span-2">
+              <label className="block text-xs text-muted mb-1">
+                Tamanhos disponíveis (opcional)
+              </label>
+              <input
+                type="text"
+                value={form.sizes}
+                onChange={(e) => setForm((f) => ({ ...f, sizes: e.target.value }))}
+                placeholder="P,M,G,GG"
+                className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
+              />
+              <p className="mt-1 text-[10px] text-muted">
+                Separe por vírgula. Deixe vazio para produtos sem tamanho (ex: caneca, ecobag).
+              </p>
+            </div>
+
             {/* Imagem */}
             <div className="sm:col-span-2">
               <label className="block text-xs text-muted mb-2">Imagem do produto</label>
@@ -289,13 +312,13 @@ export function ProductManager({ initial }: { initial: Product[] }) {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      accept="image/*"
                       onChange={handleImageUpload}
                       disabled={uploading}
                       className="block text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:border file:border-border file:text-[10px] file:uppercase file:tracking-widest file:bg-surface file:text-muted hover:file:bg-background file:cursor-pointer disabled:opacity-50"
                     />
                     <p className="mt-1 text-[10px] text-muted">
-                      JPEG, PNG ou WebP · máx. 5 MB · recortada automaticamente para 800×800
+                      JPEG, PNG, WebP, AVIF e outros · máx. 10 MB · recortada automaticamente para 800×800
                     </p>
                   </div>
 
@@ -422,6 +445,11 @@ export function ProductManager({ initial }: { initial: Product[] }) {
                 <p className="text-sm text-primary truncate">{p.name}</p>
                 {p.description && (
                   <p className="text-xs text-muted truncate">{p.description}</p>
+                )}
+                {p.sizes && (
+                  <p className="text-[10px] text-muted uppercase tracking-widest mt-0.5">
+                    Tam: {p.sizes}
+                  </p>
                 )}
               </div>
               <p className="sm:col-span-2 text-sm text-accent">{formatCurrency(p.price)}</p>

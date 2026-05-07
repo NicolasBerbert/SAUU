@@ -10,9 +10,23 @@ import crypto from "crypto";
 export const dynamic = "force-dynamic";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "products");
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-// Output format: square 800×800 WebP with center-crop
+const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "image/heic",
+  "image/heif",
+  "image/tiff",
+  "image/bmp",
+  "image/svg+xml",
+  // Allow unknown/blank MIME — sharp will detect format from buffer
+  "application/octet-stream",
+  "",
+];
 const OUTPUT_SIZE = 800;
 
 // POST /api/upload — upload and process a product image (admin only)
@@ -30,16 +44,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Nenhum arquivo enviado" }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Reject only clearly non-image MIME types (allow blank/unknown for broad compat)
+    const mimeType = file.type ?? "";
+    if (mimeType && !mimeType.startsWith("image/") && mimeType !== "application/octet-stream") {
       return NextResponse.json(
-        { error: "Formato inválido. Use JPEG, PNG, WebP ou GIF." },
+        { error: "Arquivo não é uma imagem. Use JPEG, PNG, WebP, AVIF, GIF, etc." },
         { status: 400 }
       );
     }
 
     if (file.size > MAX_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "Arquivo muito grande. Máximo 5 MB." },
+        { error: `Arquivo muito grande. Máximo ${MAX_SIZE_BYTES / 1024 / 1024} MB.` },
         { status: 400 }
       );
     }
@@ -47,27 +63,39 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ensure upload directory exists
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
-    // Generate unique filename
     const hash = crypto.randomBytes(12).toString("hex");
-    const filename = `${hash}.webp`;
-    const filepath = path.join(UPLOAD_DIR, filename);
 
-    // Process with sharp: resize to square 800×800, center-crop, convert to WebP
-    await sharp(buffer)
-      .resize(OUTPUT_SIZE, OUTPUT_SIZE, {
-        fit: "cover",
-        position: "centre",
-      })
-      .webp({ quality: 85 })
-      .toFile(filepath);
+    let filename: string;
+    let filepath: string;
+
+    // Try sharp processing first; fall back to saving original on failure
+    try {
+      filename = `${hash}.webp`;
+      filepath = path.join(UPLOAD_DIR, filename);
+
+      await sharp(buffer)
+        .resize(OUTPUT_SIZE, OUTPUT_SIZE, {
+          fit: "cover",
+          position: "centre",
+        })
+        .webp({ quality: 85 })
+        .toFile(filepath);
+    } catch (sharpError) {
+      logger.error("sharp processing failed, saving original", sharpError);
+
+      // Derive extension from MIME or filename
+      const ext = mimeType.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
+      filename = `${hash}.${ext}`;
+      filepath = path.join(UPLOAD_DIR, filename);
+      await fs.writeFile(filepath, buffer);
+    }
 
     const url = `/uploads/products/${filename}`;
     return NextResponse.json({ url });
   } catch (error) {
     logger.error("POST /api/upload", error);
-    return NextResponse.json({ error: "Erro ao processar imagem" }, { status: 500 });
+    return NextResponse.json({ error: "Erro ao salvar imagem. Tente outro formato." }, { status: 500 });
   }
 }

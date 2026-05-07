@@ -146,6 +146,7 @@ model Product {
   price       Decimal  @db.Decimal(10, 2)
   stock       Int      @default(0)
   imageUrl    String?
+  sizes       String?  // comma-separated size options, e.g. "P,M,G,GG"
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

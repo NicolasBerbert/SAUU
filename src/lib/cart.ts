@@ -1,19 +1,20 @@
-// Tipos e helpers para o carrinho de compras.
-// O carrinho é gerenciado em memória (React Context) e persistido no localStorage.
-// Não há carrinho no banco de dados — é inteiramente client-side.
+// Cart types and pure helpers.
+// Cart is managed in React Context and persisted in localStorage.
 
 export interface CartItem {
+  key: string;        // productId for no-size items; "productId:size" for sized items
   productId: string;
   name: string;
-  price: number;   // valor unitário em reais
+  price: number;
   quantity: number;
-  stock: number;   // estoque atual — usado para limitar adição
+  stock: number;
   imageUrl?: string | null;
+  size?: string;
 }
 
 export interface Cart {
   items: CartItem[];
-  incluirInscricao: boolean; // true = inscrição no evento está no carrinho
+  incluirInscricao: boolean;
 }
 
 export const CART_EMPTY: Cart = {
@@ -23,6 +24,10 @@ export const CART_EMPTY: Cart = {
 
 const STORAGE_KEY = "sauu_cart";
 
+export function makeCartKey(productId: string, size?: string): string {
+  return size ? `${productId}:${size}` : productId;
+}
+
 // ─── Persistência ─────────────────────────────────────────────────────────
 
 export function loadCart(): Cart {
@@ -31,8 +36,12 @@ export function loadCart(): Cart {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return CART_EMPTY;
     const parsed = JSON.parse(raw) as Cart;
-    // Valida estrutura mínima para evitar crashes com dados corrompidos
     if (!Array.isArray(parsed.items)) return CART_EMPTY;
+    // Backfill key field for items saved before size support was added
+    parsed.items = parsed.items.map((i) => ({
+      ...i,
+      key: i.key ?? makeCartKey(i.productId, i.size),
+    }));
     return parsed;
   } catch {
     return CART_EMPTY;
@@ -44,7 +53,7 @@ export function saveCart(cart: Cart): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
   } catch {
-    // localStorage pode estar desabilitado (modo privado restrito, etc.)
+    // localStorage may be disabled (strict private mode, etc.)
   }
 }
 
@@ -53,45 +62,44 @@ export function clearCart(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-// ─── Operações puras (retornam novo estado, não mutam) ────────────────────
+// ─── Operações puras ──────────────────────────────────────────────────────
 
-export function addItem(cart: Cart, item: Omit<CartItem, "quantity">): Cart {
-  const existing = cart.items.find((i) => i.productId === item.productId);
+export function addItem(cart: Cart, item: Omit<CartItem, "quantity" | "key">): Cart {
+  const key = makeCartKey(item.productId, item.size);
+  const existing = cart.items.find((i) => i.key === key);
 
   if (existing) {
-    // Incrementa, respeitando o estoque disponível
     const novaQtd = Math.min(existing.quantity + 1, item.stock);
-    if (novaQtd === existing.quantity) return cart; // já no máximo
+    if (novaQtd === existing.quantity) return cart;
     return {
       ...cart,
       items: cart.items.map((i) =>
-        i.productId === item.productId ? { ...i, quantity: novaQtd } : i
+        i.key === key ? { ...i, quantity: novaQtd } : i
       ),
     };
   }
 
-  if (item.stock === 0) return cart; // sem estoque
+  if (item.stock === 0) return cart;
 
   return {
     ...cart,
-    items: [...cart.items, { ...item, quantity: 1 }],
+    items: [...cart.items, { ...item, key, quantity: 1 }],
   };
 }
 
-export function removeItem(cart: Cart, productId: string): Cart {
+export function removeItem(cart: Cart, key: string): Cart {
   return {
     ...cart,
-    items: cart.items.filter((i) => i.productId !== productId),
+    items: cart.items.filter((i) => i.key !== key),
   };
 }
 
-export function updateQuantity(cart: Cart, productId: string, quantity: number): Cart {
-  if (quantity <= 0) return removeItem(cart, productId);
-
+export function updateQuantity(cart: Cart, key: string, quantity: number): Cart {
+  if (quantity <= 0) return removeItem(cart, key);
   return {
     ...cart,
     items: cart.items.map((i) => {
-      if (i.productId !== productId) return i;
+      if (i.key !== key) return i;
       return { ...i, quantity: Math.min(quantity, i.stock) };
     }),
   };

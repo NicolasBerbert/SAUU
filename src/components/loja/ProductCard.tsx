@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
+import { makeCartKey } from "@/lib/cart";
 import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -10,22 +12,39 @@ interface ProductCardProps {
   price: number;
   stock: number;
   imageUrl: string | null;
+  sizes?: string | null; // comma-separated e.g. "P,M,G,GG"
 }
 
-export function ProductCard({ id, name, description, price, stock, imageUrl }: ProductCardProps) {
+export function ProductCard({ id, name, description, price, stock, imageUrl, sizes }: ProductCardProps) {
   const { cart, addToCart, removeFromCart } = useCart();
+  const sizeList = sizes ? sizes.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const hasSizes = sizeList.length > 0;
 
-  const itemNoCarrinho = cart.items.find((i) => i.productId === id);
+  const [selectedSize, setSelectedSize] = useState<string>(hasSizes ? "" : "__none__");
+
+  const cartKey = selectedSize && selectedSize !== "__none__"
+    ? makeCartKey(id, selectedSize)
+    : makeCartKey(id);
+
+  const itemNoCarrinho = cart.items.find((i) => i.key === cartKey);
   const qtdNoCarrinho = itemNoCarrinho?.quantity ?? 0;
+
+  // Count total in cart across all sizes to show badge
+  const totalNoCarrinho = cart.items
+    .filter((i) => i.productId === id)
+    .reduce((sum, i) => sum + i.quantity, 0);
+
   const esgotado = stock === 0;
   const limiteAtingido = qtdNoCarrinho >= stock;
+  const podeAdicionar = !esgotado && (!hasSizes || selectedSize !== "");
 
   function handleAdicionar() {
-    addToCart({ productId: id, name, price, stock, imageUrl });
+    if (hasSizes && !selectedSize) return;
+    addToCart({ productId: id, name, price, stock, imageUrl, size: hasSizes ? selectedSize : undefined });
   }
 
   function handleRemover() {
-    removeFromCart(id);
+    removeFromCart(cartKey);
   }
 
   return (
@@ -73,12 +92,12 @@ export function ProductCard({ id, name, description, price, stock, imageUrl }: P
             </span>
           </div>
         )}
-        {qtdNoCarrinho > 0 && (
+        {totalNoCarrinho > 0 && (
           <div
             className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full text-[12px] font-bold text-background"
             style={{ background: "var(--red)" }}
           >
-            {qtdNoCarrinho}
+            {totalNoCarrinho}
           </div>
         )}
       </div>
@@ -97,6 +116,30 @@ export function ProductCard({ id, name, description, price, stock, imageUrl }: P
             </p>
           )}
         </div>
+
+        {/* Size picker */}
+        {hasSizes && !esgotado && (
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.24em] text-muted">Tamanho</p>
+            <div className="flex flex-wrap gap-1.5">
+              {sizeList.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSelectedSize(s === selectedSize ? "" : s)}
+                  className="px-3 py-1.5 text-[11px] uppercase tracking-widest transition-colors"
+                  style={{
+                    border: "1px solid",
+                    borderColor: selectedSize === s ? "var(--ink)" : "var(--line)",
+                    background: selectedSize === s ? "var(--ink)" : "transparent",
+                    color: selectedSize === s ? "var(--bg)" : "var(--muted)",
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div
           className="flex items-center justify-between border-t pt-4"
@@ -121,10 +164,11 @@ export function ProductCard({ id, name, description, price, stock, imageUrl }: P
             {qtdNoCarrinho === 0 ? (
               <button
                 onClick={handleAdicionar}
-                className="flex-1 py-2.5 text-[10px] uppercase tracking-[0.24em] text-primary transition-colors hover:bg-primary hover:text-background"
+                disabled={hasSizes && !selectedSize}
+                className="flex-1 py-2.5 text-[10px] uppercase tracking-[0.24em] text-primary transition-colors hover:bg-primary hover:text-background disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ border: "1px solid var(--ink)" }}
               >
-                Adicionar
+                {hasSizes && !selectedSize ? "Escolha o tamanho" : "Adicionar"}
               </button>
             ) : (
               <>

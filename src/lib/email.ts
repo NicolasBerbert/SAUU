@@ -39,7 +39,7 @@ export async function sendVerificationEmail(
         </p>
         <p style="color: #888; font-size: 12px;">Este link expira em 24 horas. Se você não criou uma conta, ignore este e-mail.</p>
         <hr />
-        <p style="color: #888; font-size: 12px;">Semana de Arquitetura Unifil &mdash; Unifil</p>
+        <p style="color: #888; font-size: 12px;">SAUU + SEC &mdash; Unifil</p>
       </div>
     `,
   });
@@ -57,11 +57,11 @@ export async function sendConfirmationEmail(
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #1a1a2e;">Inscrição Confirmada!</h1>
         <p>Olá, <strong>${name}</strong>!</p>
-        <p>Sua inscrição na <strong>Semana de Arquitetura Unifil (SAUU)</strong> foi confirmada com sucesso.</p>
+        <p>Sua inscrição na <strong>SAUU + SEC</strong> foi confirmada com sucesso.</p>
         <p>Acesse o site para escolher as palestras que deseja assistir.</p>
         <hr />
         <p style="color: #888; font-size: 12px;">
-          Semana de Arquitetura Unifil &mdash; Unifil
+          SAUU + SEC &mdash; Unifil
         </p>
       </div>
     `,
@@ -93,7 +93,7 @@ export async function sendPresentationConfirmationEmail(
         <p>Nos vemos no evento!</p>
         <hr />
         <p style="color: #888; font-size: 12px;">
-          Semana de Arquitetura Unifil &mdash; Unifil
+          SAUU + SEC &mdash; Unifil
         </p>
       </div>
     `,

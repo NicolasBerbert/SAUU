@@ -62,6 +62,7 @@ export default async function LojaPage() {
               price={product.price.toNumber()}
               stock={product.stock}
               imageUrl={product.imageUrl}
+              sizes={(product as Record<string, unknown>).sizes as string | null}
             />
           ))}
         </div>
