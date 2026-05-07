@@ -197,6 +197,15 @@ model Certificate {
 }
 
 // ─────────────────────────────────────────────
+// CONFIGURAÇÕES DO SITE
+// ─────────────────────────────────────────────
+
+model SiteConfig {
+  key   String @id
+  value String
+}
+
+// ─────────────────────────────────────────────
 // AUDIT LOG — rastreio de ações financeiras e admin
 // ─────────────────────────────────────────────
 

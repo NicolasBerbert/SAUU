@@ -6,9 +6,11 @@ import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/minhas-palestras", label: "Minhas Palestras" },
-  { href: "/inscricao", label: "Selecionar Palestras" },
+  { href: "/", label: "Início" },
+  { href: "/programacao", label: "Programação" },
   { href: "/loja", label: "Loja" },
+  { href: "/minhas-palestras", label: "Minhas Palestras" },
+  { href: "/inscricao", label: "Inscrição" },
 ];
 
 export function DashboardNav({ userName }: { userName: string }) {

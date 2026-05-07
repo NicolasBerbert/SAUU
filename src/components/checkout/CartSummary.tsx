@@ -32,7 +32,7 @@ export function CartSummary({
             <label className="flex items-center justify-between gap-4 cursor-pointer">
               <div>
                 <p className="text-sm text-primary mb-0.5">SAUU + SEC</p>
-                <p className="text-xs text-muted">Acesso completo: 5 dias de palestras</p>
+                <p className="text-xs text-muted">Acesso completo: 4 noites de palestras</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="text-sm text-accent">{formatCurrency(precoInscricao)}</span>

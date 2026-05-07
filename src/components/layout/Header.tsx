@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
-export function Header() {
+export function Header({ showLoja = true }: { showLoja?: boolean }) {
   const { data: session } = useSession();
   const [scrolled, setScrolled] = useState(false);
 
@@ -57,7 +57,7 @@ export function Header() {
             {[
               { href: "/", label: "Início" },
               { href: "/programacao", label: "Programação" },
-              { href: "/loja", label: "Loja" },
+              ...(showLoja ? [{ href: "/loja", label: "Loja" }] : []),
             ].map(({ href, label }) => (
               <Link
                 key={href}

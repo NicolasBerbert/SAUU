@@ -103,7 +103,7 @@ export default async function MinhasPalestrasPage() {
                 Inscrição confirmada
               </h3>
               <p className="text-[13px] text-muted">
-                Você já pode selecionar suas palestras nas cinco noites.
+                Você já pode selecionar suas palestras nas quatro noites.
               </p>
             </>
           )}
@@ -140,7 +140,7 @@ export default async function MinhasPalestrasPage() {
             className="mb-6 text-[11px] uppercase tracking-[0.22em]"
             style={{ color: "var(--muted)" }}
           >
-            Palestras selecionadas · {slots.length} de 5
+            Palestras selecionadas · {slots.length} de 4
           </div>
 
           {slots.length === 0 ? (
@@ -160,7 +160,7 @@ export default async function MinhasPalestrasPage() {
               className="flex flex-col gap-px"
               style={{ background: "var(--line)", border: "1px solid var(--line)" }}
             >
-              {[1, 2, 3, 4, 5].map((day) => {
+              {[1, 2, 3, 4].map((day) => {
                 const daySlots = byDay[day];
                 if (!daySlots?.length) return null;
                 return (

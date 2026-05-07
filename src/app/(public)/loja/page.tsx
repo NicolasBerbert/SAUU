@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/db";
 import { ProductCard } from "@/components/loja/ProductCard";
 import { CartBar } from "@/components/loja/CartBar";
+import { getSiteConfig } from "@/lib/siteConfig";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function LojaPage() {
+  const lojaAtiva = (await getSiteConfig("lojaAtiva", "true")) === "true";
+  if (!lojaAtiva) redirect("/");
+
   const products = await prisma.product.findMany({
     where: { active: true },
     orderBy: { name: "asc" },

@@ -55,7 +55,7 @@ export default async function HomePage() {
             <div className="max-w-[780px]">
               <div className="mb-9 flex items-center gap-3.5">
                 <span className="h-px w-12" style={{ background: "var(--red)" }} />
-                <span className="eyebrow">Edição 2026 · 15 a 19 de setembro</span>
+                <span className="eyebrow">Edição 2026 · 15 a 18 de setembro</span>
               </div>
 
               <h1
@@ -65,9 +65,9 @@ export default async function HomePage() {
                   letterSpacing: "-0.015em",
                 }}
               >
-                Semana
+                SAUU
                 <br />
-                <span style={{ color: "var(--red)", fontStyle: "italic" }}>CLBB</span>
+                <span style={{ color: "var(--red)", fontStyle: "italic" }}>+ SEC</span>
                 <br />
                 <span
                   style={{
@@ -82,7 +82,7 @@ export default async function HomePage() {
               <p
                 className="mt-8 max-w-[520px] text-[17px] leading-[1.55] text-primary"
               >
-                Cinco noites de palestras, debates e encontros sobre{" "}
+                Quatro noites de palestras, debates e encontros sobre{" "}
                 <em>Arquitetura, Urbanismo e Engenharia Civil</em>. Organizado
                 pela Comissão Lina Bo Bardi — estudantes da Unifil Londrina.
               </p>
@@ -144,9 +144,10 @@ export default async function HomePage() {
               border: "1px solid var(--red)",
               borderRadius: "50%",
               animation: "spin 28s linear infinite",
+              overflow: "visible",
             }}
           >
-            <svg viewBox="0 0 100 100" width="100%" height="100%">
+            <svg viewBox="-6 -6 112 112" width="100%" height="100%" overflow="visible">
               <defs>
                 <path
                   id="circ"
@@ -156,8 +157,8 @@ export default async function HomePage() {
               <text
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: "13px",
-                  letterSpacing: "0.24em",
+                  fontSize: "11.5px",
+                  letterSpacing: "0.22em",
                   fill: "var(--red)",
                   textTransform: "uppercase",
                 }}
@@ -192,7 +193,7 @@ export default async function HomePage() {
           style={{ background: "var(--line)", border: "1px solid var(--line)" }}
         >
           {[
-            { n: "5", l: "noites de evento" },
+            { n: "4", l: "noites de evento" },
             { n: "10", l: "palestras" },
             { n: "8", l: "convidados" },
             { n: "600+", l: "vagas no auditório" },
@@ -257,8 +258,8 @@ export default async function HomePage() {
                 style={{ background: "var(--line)", border: "1px solid var(--line)" }}
               >
                 {[
-                  { k: "Duração", v: "5 dias" },
-                  { k: "Datas", v: "15–19 set" },
+                  { k: "Duração", v: "4 noites" },
+                  { k: "Datas", v: "15–18 set" },
                   { k: "Local", v: "Unifil" },
                   { k: "Público", v: "Aberto" },
                 ].map(({ k, v }) => (
@@ -368,10 +369,10 @@ export default async function HomePage() {
             >
               Garanta sua vaga
               <br />
-              <em style={{ color: "var(--paper-2)" }}>nas cinco noites.</em>
+              <em style={{ color: "var(--paper-2)" }}>nas quatro noites.</em>
             </h3>
             <p className="max-w-[480px] text-[15px] opacity-85">
-              Inscrição única dá acesso a toda a programação, com seleção de
+              Inscrição única dá acesso às quatro noites, com seleção de
               palestras após confirmação do pagamento. Vagas limitadas no
               auditório.
             </p>

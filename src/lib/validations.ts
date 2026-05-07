@@ -92,7 +92,7 @@ export const presentationSchema = z.object({
   speaker: z.string().min(3, "Nome do palestrante obrigatório"),
   bio: z.string().optional(),
   imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  day: z.number().int().min(1).max(5),
+  day: z.number().int().min(1).max(4),
   slot: z.string().min(1, "Horário obrigatório"),
   duration: z.number().int().positive("Duração deve ser positiva"),
   maxCapacity: z.number().int().positive("Vagas deve ser positivo"),

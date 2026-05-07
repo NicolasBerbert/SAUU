@@ -88,12 +88,18 @@ export function ProductManager({ initial }: { initial: Product[] }) {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Falha no upload");
-      setForm((f) => ({ ...f, imageUrl: data.url }));
-      // Replace preview with final URL
+
+      // Safely parse JSON — server might return HTML on unexpected crash
+      const text = await res.text();
+      let data: Record<string, unknown> = {};
+      try { data = JSON.parse(text); } catch { /* non-JSON body */ }
+
+      if (!res.ok) throw new Error((data.error as string) ?? `Erro ${res.status} ao enviar imagem`);
+      if (!data.url) throw new Error("Resposta inesperada do servidor");
+
+      setForm((f) => ({ ...f, imageUrl: data.url as string }));
       URL.revokeObjectURL(objectUrl);
-      setImagePreview(data.url);
+      setImagePreview(data.url as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro no upload");
       setImagePreview(null);

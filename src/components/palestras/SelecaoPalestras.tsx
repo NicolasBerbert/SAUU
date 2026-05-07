@@ -28,7 +28,7 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
 
   const registeredCount = presentations.filter((p) => p.isUserRegistered).length;
 
-  const days = [1, 2, 3, 4, 5];
+  const days = [1, 2, 3, 4];
 
   async function toggleInscricao(presentation: Presentation) {
     setError(null);

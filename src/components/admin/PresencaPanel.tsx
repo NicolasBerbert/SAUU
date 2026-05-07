@@ -63,7 +63,7 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {[1, 2, 3, 4, 5].map((day) => {
+      {[1, 2, 3, 4].map((day) => {
         const dayPalestras = byDay[day];
         if (!dayPalestras?.length) return null;
 

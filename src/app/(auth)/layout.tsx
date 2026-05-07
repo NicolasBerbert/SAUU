@@ -58,7 +58,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           className="relative flex items-end justify-between gap-6 text-[11px] uppercase tracking-[0.26em]"
           style={{ opacity: 0.85 }}
         >
-          <span>CLBB 2026 · 15 a 19 de setembro · Unifil Londrina</span>
+          <span>CLBB 2026 · 15 a 18 de setembro · Unifil Londrina</span>
           <span className="font-display text-2xl" style={{ textTransform: "none", letterSpacing: 0 }}>
             CLBB
           </span>
@@ -68,17 +68,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Form side */}
       <div className="flex items-center justify-center px-8 py-16" style={{ background: "var(--bg)" }}>
         <div className="w-full max-w-[440px]">
-          {/* Mobile-only brand */}
-          <Link href="/" className="mb-10 flex items-center gap-2.5 md:hidden">
-            <span
-              className="grid h-7 w-7 place-items-center rounded-full font-display text-xs text-background"
-              style={{ background: "var(--red)" }}
-            >
-              C
-            </span>
-            <span className="font-display text-base font-normal" style={{ color: "var(--red)" }}>
-              CLBB
-            </span>
+          {/* Back to site */}
+          <Link
+            href="/"
+            className="mb-8 flex w-fit items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted transition-colors hover:text-accent"
+          >
+            ← Voltar ao site
           </Link>
           {children}
         </div>

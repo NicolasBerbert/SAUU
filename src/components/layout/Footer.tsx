@@ -95,7 +95,7 @@ export function Footer() {
               Contato
             </h5>
             <ul className="flex flex-col gap-2.5">
-              {["clbb@unifil.br", "@clbb.unifil", "Unifil · Londrina, PR"].map(
+              {["sarqurbunifil@gmail.com", "Unifil · Londrina, PR"].map(
                 (item) => (
                   <li
                     key={item}

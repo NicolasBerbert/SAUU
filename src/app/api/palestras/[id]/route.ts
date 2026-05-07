@@ -34,10 +34,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
-  const { id } = await params;
-  await prisma.presentation.update({
-    where: { id },
-    data: { active: false },
-  });
-  return NextResponse.json({ message: "Palestra removida" });
+  try {
+    const { id } = await params;
+    // Remove enrolled slots first to satisfy FK constraint, then delete
+    await prisma.presentationSlot.deleteMany({ where: { presentationId: id } });
+    await prisma.presentation.delete({ where: { id } });
+    return NextResponse.json({ message: "Palestra removida" });
+  } catch (error) {
+    console.error("[DELETE /api/palestras/[id]]", error);
+    return NextResponse.json({ error: "Erro ao remover" }, { status: 500 });
+  }
 }

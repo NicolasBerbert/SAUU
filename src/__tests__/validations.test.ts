@@ -276,9 +276,9 @@ describe("presentationSchema", () => {
     expect(() => presentationSchema.parse(palestraValida)).not.toThrow();
   });
 
-  it("aceita dia 5 (último dia)", () => {
+  it("aceita dia 4 (último dia)", () => {
     expect(() =>
-      presentationSchema.parse({ ...palestraValida, day: 5 })
+      presentationSchema.parse({ ...palestraValida, day: 4 })
     ).not.toThrow();
   });
 
@@ -286,8 +286,8 @@ describe("presentationSchema", () => {
     expect(presentationSchema.safeParse({ ...palestraValida, day: 0 }).success).toBe(false);
   });
 
-  it("rejeita dia 6", () => {
-    expect(presentationSchema.safeParse({ ...palestraValida, day: 6 }).success).toBe(false);
+  it("rejeita dia 5", () => {
+    expect(presentationSchema.safeParse({ ...palestraValida, day: 5 }).success).toBe(false);
   });
 
   it("rejeita slot inválido", () => {

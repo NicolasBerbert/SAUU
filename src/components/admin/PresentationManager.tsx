@@ -196,7 +196,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
                 onChange={(e) => setForm((f) => ({ ...f, day: Number(e.target.value) }))}
                 className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
               >
-                {[1, 2, 3, 4, 5].map((d) => (
+                {[1, 2, 3, 4].map((d) => (
                   <option key={d} value={d}>Dia {d}</option>
                 ))}
               </select>

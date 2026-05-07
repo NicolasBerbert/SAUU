@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserTypeButton } from "@/components/admin/UserTypeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +10,13 @@ const typeLabel: Record<string, string> = {
   EXTERNO: "Ext.",
   FORMADO: "Formado",
   ADMIN: "Admin",
+};
+
+const typeColor: Record<string, string> = {
+  ADMIN: "text-accent font-medium",
+  UNIFIL: "text-muted",
+  EXTERNO: "text-muted",
+  FORMADO: "text-muted",
 };
 
 const statusLabel: Record<string, string> = {
@@ -22,16 +32,22 @@ const statusColor: Record<string, string> = {
 };
 
 export default async function AdminUsuariosPage() {
+  const session = await getServerSession(authOptions);
+  const currentUserId = session?.user?.id ?? "";
+
   const users = await prisma.user.findMany({
-    where: { type: { not: "ADMIN" } },
     include: {
       eventRegistration: true,
       _count: { select: { presentationSlots: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ type: "asc" }, { createdAt: "desc" }],
   });
 
-  const totalPaid = users.filter((u) => u.eventRegistration?.paymentStatus === "APPROVED").length;
+  const nonAdmins = users.filter((u) => u.type !== "ADMIN");
+  const totalPaid = nonAdmins.filter(
+    (u) => u.eventRegistration?.paymentStatus === "APPROVED"
+  ).length;
+  const totalAdmins = users.filter((u) => u.type === "ADMIN").length;
 
   return (
     <div>
@@ -43,14 +59,15 @@ export default async function AdminUsuariosPage() {
         <div>
           <h1 className="text-3xl font-light text-primary mb-2">Usuários</h1>
           <p className="text-sm text-muted">
-            {users.length} cadastrados · {totalPaid} com inscrição paga
+            {nonAdmins.length} inscritos · {totalPaid} com pagamento aprovado · {totalAdmins} admin
+            {totalAdmins !== 1 ? "s" : ""}
           </p>
         </div>
         <a
           href="/api/admin/exportar"
           className="text-xs uppercase tracking-widest border border-accent px-4 py-2 text-accent hover:bg-accent hover:text-background transition-colors"
         >
-          Exportar CSV
+          Exportar Excel
         </a>
       </div>
 
@@ -59,10 +76,10 @@ export default async function AdminUsuariosPage() {
         <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 border-b border-border bg-surface">
           <p className="col-span-3 text-[10px] uppercase tracking-widest text-muted">Nome</p>
           <p className="col-span-3 text-[10px] uppercase tracking-widest text-muted">E-mail</p>
-          <p className="col-span-2 text-[10px] uppercase tracking-widest text-muted">Tipo</p>
+          <p className="col-span-1 text-[10px] uppercase tracking-widest text-muted">Tipo</p>
           <p className="col-span-2 text-[10px] uppercase tracking-widest text-muted">Inscrição</p>
           <p className="col-span-1 text-[10px] uppercase tracking-widest text-muted">Palestras</p>
-          <p className="col-span-1 text-[10px] uppercase tracking-widest text-muted text-right">Cadastro</p>
+          <p className="col-span-2 text-[10px] uppercase tracking-widest text-muted text-right">Ações</p>
         </div>
 
         <div className="flex flex-col gap-px bg-border">
@@ -73,18 +90,38 @@ export default async function AdminUsuariosPage() {
           )}
           {users.map((u) => {
             const status = u.eventRegistration?.paymentStatus ?? null;
+            const isSelf = u.id === currentUserId;
             return (
-              <div key={u.id} className="bg-surface px-6 py-4 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 sm:items-center">
-                <p className="sm:col-span-3 text-sm text-primary truncate">{u.name}</p>
+              <div
+                key={u.id}
+                className="bg-surface px-6 py-4 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 sm:items-center"
+              >
+                <div className="sm:col-span-3 min-w-0">
+                  <p className="text-sm text-primary truncate">{u.name}</p>
+                  {isSelf && (
+                    <span className="text-[10px] uppercase tracking-widest text-muted">
+                      você
+                    </span>
+                  )}
+                </div>
                 <p className="sm:col-span-3 text-xs text-muted truncate">{u.email}</p>
-                <p className="sm:col-span-2 text-xs text-muted">{typeLabel[u.type] ?? u.type}</p>
+                <p className={`sm:col-span-1 text-xs ${typeColor[u.type] ?? "text-muted"}`}>
+                  {typeLabel[u.type] ?? u.type}
+                </p>
                 <p className={`sm:col-span-2 text-xs ${status ? statusColor[status] : "text-muted"}`}>
-                  {status ? statusLabel[status] ?? status : "—"}
+                  {u.type === "ADMIN" ? "—" : (status ? statusLabel[status] ?? status : "—")}
                 </p>
-                <p className="sm:col-span-1 text-xs text-muted">{u._count.presentationSlots}</p>
-                <p className="sm:col-span-1 text-xs text-muted sm:text-right">
-                  {new Date(u.createdAt).toLocaleDateString("pt-BR")}
+                <p className="sm:col-span-1 text-xs text-muted">
+                  {u.type === "ADMIN" ? "—" : u._count.presentationSlots}
                 </p>
+                <div className="sm:col-span-2 flex justify-end">
+                  <UserTypeButton
+                    userId={u.id}
+                    currentType={u.type}
+                    userName={u.name}
+                    isSelf={isSelf}
+                  />
+                </div>
               </div>
             );
           })}

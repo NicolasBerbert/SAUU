@@ -54,7 +54,7 @@ export default async function ProgramacaoPage() {
           </h1>
         </div>
         <p className="self-end text-[17px] leading-[1.65] text-primary">
-          Cinco dias, dois horários por noite — 19h00 e 20h45. Palestras
+          Quatro noites, dois horários por noite — 19h00 e 20h45. Palestras
           gratuitas mediante inscrição. Clique nos dias para abrir os horários.
         </p>
       </div>
@@ -68,7 +68,7 @@ export default async function ProgramacaoPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3.5">
-          {[1, 2, 3, 4, 5].map((day) => {
+          {[1, 2, 3, 4].map((day) => {
             const dayPresentations = byDay[day];
             if (!dayPresentations?.length) return null;
             return (
