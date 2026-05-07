@@ -164,7 +164,7 @@ export default async function HomePage() {
                 }}
               >
                 <textPath href="#circText" textLength="185" lengthAdjust="spacing">
-                  EDIÇÃO 2026 · CLBB · UNIFIL · LONDRINA ·
+                  EDIÇÃO 2026 · CLBB · UNIFIL ·
                 </textPath>
               </text>
             </svg>
