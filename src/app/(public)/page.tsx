@@ -147,23 +147,23 @@ export default async function HomePage() {
               overflow: "visible",
             }}
           >
-            <svg viewBox="-6 -6 112 112" width="100%" height="100%" overflow="visible">
+            <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ overflow: "visible" }}>
               <defs>
                 <path
-                  id="circ"
+                  id="circText"
                   d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
                 />
               </defs>
               <text
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: "11.5px",
-                  letterSpacing: "0.22em",
+                  fontSize: "13px",
+                  letterSpacing: "0.24em",
                   fill: "var(--red)",
                   textTransform: "uppercase",
                 }}
               >
-                <textPath href="#circ">EDIÇÃO 2026 · CLBB · UNIFIL · LONDRINA · </textPath>
+                <textPath href="#circText">EDIÇÃO 2026 · CLBB · UNIFIL · LONDRINA · </textPath>
               </text>
             </svg>
           </div>
