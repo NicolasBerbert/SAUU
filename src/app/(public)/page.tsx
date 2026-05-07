@@ -314,14 +314,7 @@ export default function HomePage() {
             {pillars.map((p) => (
               <div
                 key={p.num}
-                className="px-6 py-8 transition-colors"
-                style={{ background: "var(--paper)" }}
-                onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLDivElement).style.background = "var(--bg)")
-                }
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLDivElement).style.background = "var(--paper)")
-                }
+                className="bg-surface px-6 py-8 transition-colors hover:bg-background"
               >
                 <div
                   className="mb-4 font-display text-[36px] leading-none"

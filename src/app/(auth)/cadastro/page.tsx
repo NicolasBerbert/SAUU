@@ -46,9 +46,7 @@ export default function CadastroPage() {
           <Link
             key={tipo.href}
             href={tipo.href}
-            className="group flex items-center justify-between px-5 py-5 transition-all"
-            style={{ background: "var(--paper)" }}
-            onMouseEnter={() => {}}
+            className="group flex items-center justify-between bg-surface px-5 py-5 transition-colors hover:bg-background"
           >
             <div className="role-info">
               <b

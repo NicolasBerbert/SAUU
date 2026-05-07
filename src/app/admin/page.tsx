@@ -44,14 +44,7 @@ export default async function AdminPage() {
           <Link
             key={m.label}
             href={m.href}
-            className="group flex flex-col gap-2 p-6 transition-colors"
-            style={{ background: "var(--paper)" }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLAnchorElement).style.background = "var(--bg)")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLAnchorElement).style.background = "var(--paper)")
-            }
+            className="group flex flex-col gap-2 bg-surface p-6 transition-colors hover:bg-background"
           >
             <span
               className="font-display text-[36px] leading-none"
@@ -96,14 +89,7 @@ export default async function AdminPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="group flex items-center justify-between px-6 py-4 transition-colors"
-              style={{ background: "var(--paper)" }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLAnchorElement).style.background = "var(--bg)")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLAnchorElement).style.background = "var(--paper)")
-              }
+              className="group flex items-center justify-between bg-surface px-6 py-4 transition-colors hover:bg-background"
             >
               <div>
                 <p className="mb-0.5 text-[14px] text-primary">{item.label}</p>
