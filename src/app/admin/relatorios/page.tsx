@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { LimparPendentesButton } from "@/components/admin/LimparPendentesButton";
+import { TesteEmailButton } from "@/components/admin/TesteEmailButton";
+import { ExportButton } from "@/components/admin/ExportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -191,6 +193,57 @@ export default async function RelatoriosPage() {
         <div className="border border-border px-4 py-3 flex items-center justify-between">
           <span className="text-xs text-muted">Usuários cadastrados nas últimas 24 horas</span>
           <span className="text-sm text-primary">{cadastrosHoje}</span>
+        </div>
+      </section>
+
+      {/* Exportações */}
+      <section className="mb-8">
+        <h2 className="text-xs uppercase tracking-widest text-muted mb-3">Exportar dados</h2>
+        <div className="border border-border divide-y divide-border">
+          <div className="px-4 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-primary font-medium">Lista de inscritos</p>
+              <p className="text-[10px] text-muted">Nome, e-mail, tipo, RA, status de pagamento e palestras — formato Excel</p>
+            </div>
+            <ExportButton href="/api/admin/exportar" label="Baixar .xlsx" />
+          </div>
+          <div className="px-4 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-primary font-medium">Horas por usuário</p>
+              <p className="text-[10px] text-muted">Palestras assistidas e total de horas por participante — formato Excel</p>
+            </div>
+            <ExportButton href="/api/admin/exportar/horas" label="Baixar .xlsx" />
+          </div>
+        </div>
+      </section>
+
+      {/* Diagnóstico */}
+      <section className="mb-8">
+        <h2 className="text-xs uppercase tracking-widest text-muted mb-3">Diagnóstico do sistema</h2>
+        <div className="border border-border divide-y divide-border">
+          <div className="px-4 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-primary font-medium">Teste de e-mail</p>
+              <p className="text-[10px] text-muted">Envia um e-mail de teste para sua conta admin para verificar a configuração SMTP</p>
+            </div>
+            <TesteEmailButton />
+          </div>
+          <div className="px-4 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-primary font-medium">Health check</p>
+              <p className="text-[10px] text-muted">Endpoint público: <code className="font-mono">/api/health</code> — use com UptimeRobot ou similar</p>
+            </div>
+            <ExportButton href="/api/health" label="Ver status" />
+          </div>
+          <div className="px-4 py-3">
+            <p className="text-xs text-primary font-medium mb-2">Stripe — teste de pagamento</p>
+            <div className="text-[10px] text-muted space-y-1">
+              <p>Cartão aprovado: <code className="font-mono">4242 4242 4242 4242</code></p>
+              <p>Cartão recusado: <code className="font-mono">4000 0000 0000 0002</code></p>
+              <p>Validade: qualquer data futura (ex: 12/34) · CVV: qualquer 3 dígitos</p>
+              <p className="mt-2">Para testar webhooks localmente: <code className="font-mono">stripe listen --forward-to localhost:3000/api/pagamento/webhook</code></p>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -115,7 +115,7 @@ describe("unifilRegisterSchema", () => {
 describe("uelRegisterSchema", () => {
   const dadosValidos = {
     ...baseValido,
-    type: "UEL" as const,
+    type: "EXTERNO" as const,
     email: "aluno@uel.br",
     ra: "12345",
   };
@@ -124,15 +124,20 @@ describe("uelRegisterSchema", () => {
     expect(() => uelRegisterSchema.parse(dadosValidos)).not.toThrow();
   });
 
-  it("aceita email gmail (UEL não exige domínio específico)", () => {
+  it("aceita email gmail (instituição externa não exige domínio específico)", () => {
     expect(() =>
       uelRegisterSchema.parse({ ...dadosValidos, email: "aluno@gmail.com" })
     ).not.toThrow();
   });
 
-  it("rejeita RA muito curto", () => {
+  it("aceita RA curto (formato a ser definido)", () => {
     const resultado = uelRegisterSchema.safeParse({ ...dadosValidos, ra: "123" });
-    expect(resultado.success).toBe(false);
+    expect(resultado.success).toBe(true);
+  });
+
+  it("aceita sem RA (campo opcional)", () => {
+    const resultado = uelRegisterSchema.safeParse({ ...dadosValidos, ra: "" });
+    expect(resultado.success).toBe(true);
   });
 
   it("rejeita email inválido", () => {

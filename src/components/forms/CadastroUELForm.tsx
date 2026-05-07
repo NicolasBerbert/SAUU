@@ -20,7 +20,7 @@ export function CadastroUELForm() {
     formState: { errors, isSubmitting },
   } = useForm<ExternoRegisterInput>({
     resolver: zodResolver(externoRegisterSchema),
-    defaultValues: { type: "EXTERNO" as const, institution: "" },
+    defaultValues: { type: "EXTERNO" as const, institution: "", ra: "" },
   });
 
   async function onSubmit(data: ExternoRegisterInput) {
@@ -80,9 +80,21 @@ export function CadastroUELForm() {
         <FormError message={errors.phone?.message} />
       </div>
 
+      {/* Instituição */}
+      <div>
+        <Label htmlFor="institution">Instituição de origem</Label>
+        <Input
+          id="institution"
+          placeholder="Nome da sua faculdade ou universidade"
+          error={!!errors.institution}
+          {...register("institution")}
+        />
+        <FormError message={errors.institution?.message} />
+      </div>
+
       {/* RA */}
       <div>
-        <Label htmlFor="ra">Registro Acadêmico (RA)</Label>
+        <Label htmlFor="ra">Registro Acadêmico (RA) <span className="text-muted font-normal">(opcional)</span></Label>
         <Input
           id="ra"
           placeholder="Seu Registro Acadêmico"
@@ -98,7 +110,7 @@ export function CadastroUELForm() {
         <Input
           id="password"
           type="password"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Mínimo 8 caracteres"
           error={!!errors.password}
           {...register("password")}
         />

@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         institution: parsed.institution,
         type: parsed.type as UserType,
+        // RA only for external students
+        ...("ra" in parsed && parsed.ra ? { ra: parsed.ra } : {}),
       },
     });
 

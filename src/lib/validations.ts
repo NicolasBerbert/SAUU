@@ -39,7 +39,7 @@ export const unifilRegisterSchema = baseRegisterSchema
 export const externoRegisterSchema = baseRegisterSchema
   .extend({
     type: z.literal("EXTERNO" as const),
-    ra: z.string().min(5, "RA inválido"), // Registro Acadêmico da instituição
+    ra: z.string().optional().or(z.literal("")), // Registro Acadêmico — formato a definir
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Senhas não coincidem",
@@ -96,6 +96,9 @@ export const presentationSchema = z.object({
   duration: z.number().int().positive("Duração deve ser positiva"),
   maxCapacity: z.number().int().positive("Vagas deve ser positivo"),
 });
+
+// Alias for backwards compatibility with existing references to "uel"
+export const uelRegisterSchema = externoRegisterSchema;
 
 export type UnifliRegisterInput = z.infer<typeof unifilRegisterSchema>;
 export type ExternoRegisterInput = z.infer<typeof externoRegisterSchema>;

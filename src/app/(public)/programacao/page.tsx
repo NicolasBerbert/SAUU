@@ -1,9 +1,25 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProgramacaoPage() {
+  const session = await getServerSession(authOptions);
+
+  let hasPaidRegistration = false;
+  if (session?.user?.id) {
+    const registration = await prisma.eventRegistration.findUnique({
+      where: { userId: session.user.id },
+      select: { paymentStatus: true },
+    });
+    hasPaidRegistration = registration?.paymentStatus === "APPROVED";
+  }
+
+  const ctaHref = !session ? "/cadastro" : hasPaidRegistration ? "/minhas-palestras" : "/minhas-palestras";
+  const ctaLabel = !session ? "Inscrever-se" : hasPaidRegistration ? "Ver minhas palestras" : "Fazer inscrição";
+
   const presentations = await prisma.presentation.findMany({
     where: { active: true },
     include: { _count: { select: { slots: true } } },
@@ -74,11 +90,11 @@ export default async function ProgramacaoPage() {
           </div>
         </div>
         <Link
-          href="/cadastro"
+          href={ctaHref}
           className="inline-flex items-center gap-2.5 border border-transparent px-[22px] py-[14px] text-[11px] uppercase tracking-[0.24em] text-background transition-all hover:bg-accent-dark hover:-translate-y-px"
           style={{ background: "var(--red)" }}
         >
-          Inscrever-se <span>→</span>
+          {ctaLabel} <span>→</span>
         </Link>
       </div>
     </main>
@@ -104,7 +120,6 @@ function DayRow({
     <details
       className="group"
       style={{ border: "1px solid var(--line)", background: "var(--paper)" }}
-      open={day === 1}
     >
       <summary
         className="grid cursor-pointer select-none items-center gap-6 px-7 py-5 transition-colors hover:bg-background"

@@ -47,6 +47,7 @@ model User {
   password      String
   institution   String
   type          UserType
+  ra            String?   // Registro Acadêmico (apenas EXTERNO)
   emailVerified Boolean   @default(false)
   active        Boolean   @default(true)
   totpSecret    String?   // TOTP 2FA (apenas ADMIN)

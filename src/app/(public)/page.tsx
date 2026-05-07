@@ -1,7 +1,28 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const session = await getServerSession(authOptions);
+
+  let hasPaidRegistration = false;
+  if (session?.user?.id) {
+    const registration = await prisma.eventRegistration.findUnique({
+      where: { userId: session.user.id },
+      select: { paymentStatus: true },
+    });
+    hasPaidRegistration = registration?.paymentStatus === "APPROVED";
+  }
+
+  // CTA button config based on auth/payment state
+  const ctaHref = !session ? "/cadastro" : hasPaidRegistration ? "/minhas-palestras" : "/minhas-palestras";
+  const ctaLabel = !session ? "Inscrever-se" : hasPaidRegistration ? "Minhas palestras" : "Fazer inscrição";
+  const ctaLabelLong = !session ? "Inscrever-se agora" : hasPaidRegistration ? "Ver minhas palestras" : "Fazer inscrição agora";
+
   const pillars = [
     { num: "01", t: "Projeto", d: "Processo criativo, método e prática projetual em arquitetura e urbanismo." },
     { num: "02", t: "Técnica", d: "Sistemas construtivos, estruturas e materialidade na engenharia civil." },
@@ -68,11 +89,11 @@ export default function HomePage() {
 
               <div className="mt-9 flex flex-wrap gap-3.5">
                 <Link
-                  href="/cadastro"
+                  href={ctaHref}
                   className="inline-flex items-center gap-2.5 border border-transparent px-[22px] py-[14px] text-[11px] uppercase tracking-[0.24em] text-background transition-all hover:bg-accent-dark hover:-translate-y-px"
                   style={{ background: "var(--red)" }}
                 >
-                  Inscrever-se <span>→</span>
+                  {ctaLabel} <span>→</span>
                 </Link>
                 <Link
                   href="/programacao"
@@ -151,7 +172,6 @@ export default function HomePage() {
             className="absolute bottom-12 left-0 flex flex-col items-start gap-3.5"
             style={{ fontSize: "10px", letterSpacing: "0.32em", textTransform: "uppercase", color: "var(--muted)" }}
           >
-            <span>Role</span>
             <span
               className="block w-px"
               style={{
@@ -358,19 +378,31 @@ export default function HomePage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="font-display text-[96px] leading-none">R$50</div>
-            <div
-              className="mt-1.5 text-[11px] uppercase tracking-[0.28em]"
-              style={{ opacity: 0.75 }}
-            >
-              inscrição completa
-            </div>
+            {!hasPaidRegistration && (
+              <>
+                <div className="font-display text-[96px] leading-none">R$50</div>
+                <div
+                  className="mt-1.5 text-[11px] uppercase tracking-[0.28em]"
+                  style={{ opacity: 0.75 }}
+                >
+                  inscrição completa
+                </div>
+              </>
+            )}
+            {hasPaidRegistration && (
+              <div
+                className="mb-4 text-[11px] uppercase tracking-[0.28em]"
+                style={{ opacity: 0.75 }}
+              >
+                Inscrição confirmada ✓
+              </div>
+            )}
             <Link
-              href="/cadastro"
+              href={ctaHref}
               className="mt-6 inline-flex items-center gap-2.5 px-[22px] py-[14px] text-[11px] uppercase tracking-[0.24em] transition-all hover:-translate-y-px"
               style={{ background: "var(--bg)", color: "var(--red)" }}
             >
-              Inscrever-se agora <span>→</span>
+              {ctaLabelLong} <span>→</span>
             </Link>
           </div>
         </div>
