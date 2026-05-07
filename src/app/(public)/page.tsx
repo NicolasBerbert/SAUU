@@ -157,13 +157,15 @@ export default async function HomePage() {
               <text
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: "10.5px",
-                  letterSpacing: "0.2em",
+                  fontSize: "10px",
+                  letterSpacing: "0.18em",
                   fill: "var(--red)",
                   textTransform: "uppercase",
                 }}
               >
-                <textPath href="#circText">EDIÇÃO 2026 · CLBB · UNIFIL · LONDRINA · </textPath>
+                <textPath href="#circText" textLength="185" lengthAdjust="spacing">
+                  EDIÇÃO 2026 · CLBB · UNIFIL · LONDRINA ·
+                </textPath>
               </text>
             </svg>
           </div>
