@@ -3,34 +3,55 @@ import { Button } from "@/components/ui/Button";
 
 export default function CheckoutSucessoPage() {
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
-      <div className="max-w-lg mx-auto text-center">
-        <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="h-px w-8 bg-accent" />
-          <span className="text-xs uppercase tracking-widest text-accent">Confirmado</span>
-          <div className="h-px w-8 bg-accent" />
+    <main
+      className="flex min-h-screen items-center justify-center px-8"
+      style={{ background: "var(--bg)" }}
+    >
+      <div className="mx-auto w-full max-w-lg text-center">
+        <div className="mb-8 flex items-center justify-center gap-3">
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+          <span className="eyebrow">Confirmado</span>
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
         </div>
 
-        <div className="border border-border p-12 mb-8">
-          <div className="w-12 h-12 border border-accent/40 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
+        <div
+          className="mb-8 p-12"
+          style={{ border: "1px solid var(--line)", background: "var(--paper)" }}
+        >
+          <div
+            className="relative mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full font-display text-2xl"
+            style={{ border: "1px solid var(--red)", color: "var(--red)" }}
+          >
+            ✓
+            <span
+              className="absolute inset-[-6px] rounded-full"
+              style={{
+                border: "1px solid var(--red)",
+                opacity: 0.25,
+                animation: "pulseRing 2.4s ease-in-out infinite",
+              }}
+            />
           </div>
-          <h1 className="text-3xl font-light text-primary mb-3">Inscrição confirmada</h1>
-          <p className="text-sm text-muted mb-8">
-            Sua inscrição no SAUU foi confirmada. Agora você pode selecionar as palestras que deseja assistir.
+          <h1
+            className="mb-3 font-display leading-none text-primary"
+            style={{ fontSize: "36px" }}
+          >
+            Inscrição confirmada
+          </h1>
+          <p className="mb-8 text-[14px] text-muted">
+            Sua inscrição foi confirmada. Agora você pode selecionar as
+            palestras que deseja assistir.
           </p>
           <Link href="/inscricao">
-            <Button variant="primary" className="text-xs tracking-widest uppercase px-8 py-3">
-              Selecionar palestras
+            <Button variant="primary" className="px-8 py-3.5">
+              Selecionar palestras <span>→</span>
             </Button>
           </Link>
         </div>
 
         <Link
           href="/minhas-palestras"
-          className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors"
+          className="border-b border-current pb-0.5 text-[12px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-accent"
         >
           Ver minha área
         </Link>

@@ -9,21 +9,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0a0a0a",
-        surface: "#111111",
-        "surface-2": "#181818",
-        border: "#252525",
-        "border-hover": "#3a3a3a",
-        primary: "#f0ede8",
-        muted: "#7a7a7a",
-        accent: "#c8a96e",
-        "accent-dark": "#b8945a",
-        "accent-light": "#d4bb8a",
+        background: "#E3E2DE",
+        surface: "#ECEAE4",
+        "surface-2": "#d8d6cf",
+        border: "#C8C6C0",
+        "border-hover": "#A9A7A1",
+        primary: "#32312f",
+        muted: "#7C7A76",
+        accent: "#A73E2F",
+        "accent-dark": "#8a3225",
+        "accent-light": "#c45748",
+        tan: "#A99277",
+        sage: "#8C9673",
         danger: "#e05c5c",
-        success: "#4caf7d",
+        success: "#8C9673",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "'Times New Roman'", "serif"],
       },
     },
   },
@@ -31,4 +34,3 @@ const config: Config = {
 };
 
 export default config;
- 

@@ -2,24 +2,37 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
-      <div className="max-w-md w-full text-center">
-        <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="h-px w-8 bg-accent" />
-          <span className="text-xs uppercase tracking-widest text-accent">404</span>
-          <div className="h-px w-8 bg-accent" />
+    <div
+      className="flex min-h-screen items-center justify-center px-8"
+      style={{ background: "var(--bg)" }}
+    >
+      <div className="w-full max-w-md text-center">
+        <div
+          className="mb-4 font-display leading-none"
+          style={{ fontSize: "120px", color: "var(--red)", opacity: 0.15 }}
+        >
+          404
         </div>
-        <h1 className="text-2xl font-light tracking-wide text-foreground mb-4">
-          Página não encontrada
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+          <span className="eyebrow">Página não encontrada</span>
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+        </div>
+        <h1
+          className="mb-3 font-display leading-none text-primary"
+          style={{ fontSize: "32px" }}
+        >
+          Ops, nada aqui
         </h1>
-        <p className="text-sm text-muted mb-10">
+        <p className="mb-10 text-[14px] text-muted">
           A página que você procura não existe ou foi movida.
         </p>
         <Link
           href="/"
-          className="text-xs uppercase tracking-widest border border-accent px-6 py-3 text-accent hover:bg-accent hover:text-background transition-colors"
+          className="inline-flex items-center gap-2.5 border border-transparent px-[22px] py-[14px] text-[11px] uppercase tracking-[0.24em] text-background transition-all hover:bg-accent-dark"
+          style={{ background: "var(--red)" }}
         >
-          Voltar ao início
+          Voltar ao início <span>→</span>
         </Link>
       </div>
     </div>

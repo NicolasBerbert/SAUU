@@ -11,28 +11,48 @@ export default async function LojaPage() {
   });
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
+    <main className="mx-auto max-w-[1320px] px-8 py-[140px]">
       {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-px w-8 bg-accent" />
-          <span className="text-xs uppercase tracking-widest text-accent">Loja</span>
+      <div className="mb-16 grid grid-cols-1 gap-10 md:grid-cols-[1fr_1.4fr]">
+        <div>
+          <div className="mb-4 flex items-center gap-3.5">
+            <span className="h-px w-8" style={{ background: "var(--red)" }} />
+            <span className="eyebrow">Loja</span>
+          </div>
+          <h1
+            className="font-display leading-[0.96] text-primary"
+            style={{ fontSize: "clamp(40px, 5.5vw, 72px)" }}
+          >
+            Loja
+            <br />
+            <em style={{ color: "var(--red)" }}>CLBB</em>
+          </h1>
         </div>
-        <h1 className="text-4xl font-light text-primary mb-3">Loja SAUU</h1>
-        <p className="text-sm text-muted max-w-lg">
-          Produtos exclusivos do evento. Retirada feita presencialmente durante a semana.
-          Adicione ao carrinho e finalize o pagamento junto com sua inscrição ou separadamente.
+        <p className="self-end text-[17px] leading-[1.65] text-primary">
+          Produtos exclusivos do evento. Retirada feita presencialmente durante a
+          semana. Pagamento via Mercado Pago, com a inscrição ou separadamente.
         </p>
       </div>
 
       {products.length === 0 ? (
-        <div className="border border-border py-20 text-center">
-          <div className="w-10 h-px bg-border mx-auto mb-6" />
-          <p className="text-sm text-muted mb-2">Produtos em breve</p>
-          <p className="text-xs text-muted/60">A loja será aberta em breve. Fique de olho!</p>
+        <div
+          className="py-20 text-center"
+          style={{ border: "1px dashed var(--line)" }}
+        >
+          <div
+            className="mx-auto mb-6 h-px w-10"
+            style={{ background: "var(--line)" }}
+          />
+          <p className="mb-1 text-[14px] text-muted">Produtos em breve</p>
+          <p className="text-[12px]" style={{ color: "rgba(124,122,118,0.6)" }}>
+            A loja será aberta em breve. Fique de olho!
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+        <div
+          className="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-3"
+          style={{ background: "var(--line)", border: "1px solid var(--line)" }}
+        >
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -47,13 +67,15 @@ export default async function LojaPage() {
         </div>
       )}
 
-      <div className="mt-10 mb-24 border border-border px-6 py-4">
-        <p className="text-xs text-muted">
+      <div
+        className="mb-24 mt-10 px-6 py-4"
+        style={{ border: "1px solid var(--line)" }}
+      >
+        <p className="text-[12px] text-muted">
           Retirada presencial durante o evento · Sem frete · Pagamento via Mercado Pago
         </p>
       </div>
 
-      {/* Barra do carrinho — aparece quando há itens */}
       <CartBar precoInscricao={Number(process.env.EVENT_REGISTRATION_PRICE ?? 50)} />
     </main>
   );

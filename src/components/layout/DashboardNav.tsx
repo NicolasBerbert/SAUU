@@ -15,25 +15,36 @@ export function DashboardNav({ userName }: { userName: string }) {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-border bg-background">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="h-5 w-px bg-accent" />
-            <span className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors">
-              SAUU
+    <header
+      className="border-b"
+      style={{ borderColor: "var(--line-soft)", background: "var(--paper)" }}
+    >
+      <div className="mx-auto max-w-[1320px] px-8">
+        <div className="flex h-[70px] items-center justify-between gap-6">
+          {/* Brand */}
+          <Link href="/" className="group flex items-center gap-3">
+            <span
+              className="grid h-[34px] w-[34px] place-items-center rounded-full font-display text-sm text-background transition-transform duration-300 group-hover:-rotate-[8deg]"
+              style={{ background: "var(--red)" }}
+            >
+              C
             </span>
+            <b
+              className="font-display text-lg font-normal"
+              style={{ color: "var(--red)" }}
+            >
+              CLBB
+            </b>
           </Link>
 
-          {/* Nav links */}
-          <nav className="hidden sm:flex items-center gap-6">
+          {/* Nav */}
+          <nav className="hidden items-center gap-6 sm:flex">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "text-xs uppercase tracking-widest transition-colors",
+                  "text-[12px] uppercase tracking-[0.18em] transition-colors",
                   pathname === link.href
                     ? "text-accent"
                     : "text-muted hover:text-primary"
@@ -46,12 +57,12 @@ export function DashboardNav({ userName }: { userName: string }) {
 
           {/* User */}
           <div className="flex items-center gap-4">
-            <span className="text-xs text-muted hidden sm:block truncate max-w-32">
+            <span className="hidden max-w-[130px] truncate text-[12px] text-muted sm:block">
               {userName}
             </span>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors"
+              className="text-[12px] uppercase tracking-[0.18em] text-muted transition-colors hover:text-accent"
             >
               Sair
             </button>
@@ -59,13 +70,13 @@ export function DashboardNav({ userName }: { userName: string }) {
         </div>
 
         {/* Mobile nav */}
-        <div className="flex sm:hidden gap-4 pb-3 overflow-x-auto">
+        <div className="flex gap-4 overflow-x-auto pb-3 sm:hidden">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                "text-xs uppercase tracking-widest whitespace-nowrap transition-colors",
+                "whitespace-nowrap text-[12px] uppercase tracking-[0.18em] transition-colors",
                 pathname === link.href
                   ? "text-accent"
                   : "text-muted hover:text-primary"

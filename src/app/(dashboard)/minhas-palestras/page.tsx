@@ -31,7 +31,6 @@ export default async function MinhasPalestrasPage() {
   const isPending = registration?.paymentStatus === "PENDING";
   const slots = user?.presentationSlots ?? [];
 
-  // Agrupar por dia
   const byDay = slots.reduce<Record<number, typeof slots>>((acc, slot) => {
     const day = slot.presentation.day;
     if (!acc[day]) acc[day] = [];
@@ -39,119 +38,182 @@ export default async function MinhasPalestrasPage() {
     return acc;
   }, {});
 
+  const firstName = session.user.name.split(" ")[0];
+
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-10">
-        <div className="h-px w-8 bg-accent" />
-        <span className="text-xs uppercase tracking-widest text-accent">Dashboard</span>
+      {/* Page header */}
+      <div className="mb-10">
+        <div className="mb-4 flex items-center gap-3.5">
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+          <span className="eyebrow">Painel</span>
+        </div>
+        <h1
+          className="mb-2 font-display leading-none"
+          style={{ fontSize: "56px" }}
+        >
+          Olá,{" "}
+          <em style={{ color: "var(--red)" }}>{firstName}</em>
+        </h1>
+        <p className="text-[14px] text-muted">
+          Gerencie suas inscrições e palestras abaixo.
+        </p>
       </div>
 
-      <h1 className="text-3xl font-light text-primary mb-2">Minhas Palestras</h1>
-      <p className="text-sm text-muted mb-10">
-        Olá, {session.user.name.split(" ")[0]}. Gerencie suas inscrições abaixo.
-      </p>
+      {/* Status card */}
+      <div
+        className="mb-12 grid items-center gap-8 p-8"
+        style={{
+          border: "1px solid var(--line)",
+          background: "var(--paper)",
+          gridTemplateColumns: "auto 1fr auto",
+        }}
+      >
+        <div
+          className="relative grid h-16 w-16 place-items-center rounded-full font-display text-2xl"
+          style={{ border: "1px solid var(--red)", color: "var(--red)" }}
+        >
+          {isPaid ? "✓" : isPending ? "…" : "○"}
+        </div>
 
-      {/* Status da inscrição */}
-      <div className="border border-border p-6 mb-10">
-        <p className="text-xs uppercase tracking-widest text-muted mb-4">Status da inscrição</p>
-
-        {!registration && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-primary mb-1">Inscrição não realizada</p>
-              <p className="text-xs text-muted">
+        <div>
+          {!registration && (
+            <>
+              <h3 className="mb-1 font-display text-[28px] text-primary">
+                Inscrição pendente
+              </h3>
+              <p className="text-[13px] text-muted">
                 Pague a inscrição para selecionar as palestras.
               </p>
-            </div>
+            </>
+          )}
+          {isPending && (
+            <>
+              <h3 className="mb-1 font-display text-[28px] text-primary">
+                Pagamento em processamento
+              </h3>
+              <p className="text-[13px] text-muted">
+                Seu pagamento ainda está sendo processado.
+              </p>
+            </>
+          )}
+          {isPaid && (
+            <>
+              <h3 className="mb-1 font-display text-[28px] text-primary">
+                Inscrição confirmada
+              </h3>
+              <p className="text-[13px] text-muted">
+                Você já pode selecionar suas palestras nas cinco noites.
+              </p>
+            </>
+          )}
+        </div>
+
+        <div>
+          {!registration && (
             <Link href="/checkout">
-              <Button variant="primary" className="text-xs tracking-widest uppercase whitespace-nowrap">
+              <Button variant="primary" className="whitespace-nowrap">
                 Inscrever-se —{" "}
                 {formatCurrency(Number(process.env.EVENT_REGISTRATION_PRICE ?? 50))}
               </Button>
             </Link>
-          </div>
-        )}
-
-        {isPending && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-primary mb-1">Pagamento pendente</p>
-              <p className="text-xs text-muted">
-                Seu pagamento ainda está sendo processado.
-              </p>
-            </div>
+          )}
+          {isPending && (
             <Link href="/checkout">
-              <Button variant="secondary" className="text-xs tracking-widest uppercase">
-                Tentar novamente
-              </Button>
+              <Button variant="secondary">Tentar novamente</Button>
             </Link>
-          </div>
-        )}
-
-        {isPaid && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-success mb-1">Inscrição confirmada</p>
-              <p className="text-xs text-muted">
-                Você pode selecionar as palestras que deseja assistir.
-              </p>
-            </div>
+          )}
+          {isPaid && (
             <Link href="/inscricao">
-              <Button variant="primary" className="text-xs tracking-widest uppercase">
-                Selecionar palestras
+              <Button variant="primary">
+                Selecionar palestras <span>→</span>
               </Button>
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Lista de palestras */}
+      {/* Lectures list */}
       {isPaid && (
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted mb-6">
-            Palestras selecionadas ({slots.length})
-          </p>
+          <div
+            className="mb-6 text-[11px] uppercase tracking-[0.22em]"
+            style={{ color: "var(--muted)" }}
+          >
+            Palestras selecionadas · {slots.length} de 5
+          </div>
 
           {slots.length === 0 ? (
-            <div className="border border-border border-dashed p-10 text-center">
-              <p className="text-sm text-muted mb-4">
+            <div
+              className="p-10 text-center"
+              style={{ border: "1px dashed var(--line)" }}
+            >
+              <p className="mb-4 text-[14px] text-muted">
                 Você ainda não selecionou nenhuma palestra.
               </p>
               <Link href="/inscricao">
-                <Button variant="secondary" className="text-xs tracking-widest uppercase">
-                  Selecionar agora
-                </Button>
+                <Button variant="secondary">Selecionar agora</Button>
               </Link>
             </div>
           ) : (
-            <div className="flex flex-col gap-px bg-border">
+            <div
+              className="flex flex-col gap-px"
+              style={{ background: "var(--line)", border: "1px solid var(--line)" }}
+            >
               {[1, 2, 3, 4, 5].map((day) => {
                 const daySlots = byDay[day];
                 if (!daySlots?.length) return null;
                 return (
-                  <div key={day} className="bg-surface">
-                    <div className="px-6 py-3 border-b border-border">
-                      <p className="text-xs uppercase tracking-widest text-muted">
+                  <div key={day} style={{ background: "var(--paper)" }}>
+                    <div
+                      className="border-b px-7 py-3"
+                      style={{ borderColor: "var(--line)" }}
+                    >
+                      <p
+                        className="text-[10px] uppercase tracking-[0.3em]"
+                        style={{ color: "var(--muted)" }}
+                      >
                         Dia {day}
                       </p>
                     </div>
                     {daySlots.map((slot) => (
                       <div
                         key={slot.presentation.id}
-                        className="flex items-center justify-between px-6 py-4"
+                        className="grid items-center gap-6 px-7 py-5"
+                        style={{
+                          gridTemplateColumns: "80px 1fr auto",
+                          borderTop: "1px solid var(--line)",
+                        }}
                       >
+                        <div
+                          className="font-display text-[22px]"
+                          style={{ color: "var(--red)" }}
+                        >
+                          {slot.presentation.slot}
+                          <small
+                            className="mt-0.5 block font-sans text-[10px] uppercase tracking-[0.24em]"
+                            style={{ color: "var(--muted)" }}
+                          >
+                            Dia {day}
+                          </small>
+                        </div>
                         <div>
-                          <p className="text-sm text-primary mb-0.5">
+                          <div className="mb-1 text-[15px] text-primary">
                             {slot.presentation.title}
-                          </p>
-                          <p className="text-xs text-muted">
+                          </div>
+                          <div className="text-[12px] text-muted">
                             {slotLabel(slot.presentation.slot)} —{" "}
                             {slot.presentation.speaker}
-                          </p>
+                          </div>
                         </div>
-                        <span className="text-xs text-accent border border-accent/30 px-2 py-1 ml-4 shrink-0">
-                          {slotLabel(slot.presentation.slot)}
+                        <span
+                          className="whitespace-nowrap px-2.5 py-1.5 text-[10px] uppercase tracking-[0.24em]"
+                          style={{
+                            border: "1px solid var(--sage)",
+                            color: "var(--sage)",
+                          }}
+                        >
+                          Confirmada
                         </span>
                       </div>
                     ))}

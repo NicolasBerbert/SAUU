@@ -52,60 +52,68 @@ export default function AlterarSenhaPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-10">
-        <div className="h-px w-8 bg-accent" />
-        <span className="text-xs uppercase tracking-widest text-accent">Perfil</span>
+      <div className="mb-10">
+        <div className="mb-4 flex items-center gap-3.5">
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+          <span className="eyebrow">Perfil</span>
+        </div>
+        <h1
+          className="mb-2 font-display leading-none text-primary"
+          style={{ fontSize: "40px" }}
+        >
+          Alterar Senha
+        </h1>
+        <p className="text-[14px] text-muted">
+          Escolha uma senha com ao menos 8 caracteres e um número.
+        </p>
       </div>
-      <h1 className="text-2xl font-light tracking-wide text-foreground mb-2">Alterar Senha</h1>
-      <p className="text-sm text-muted mb-10">Escolha uma senha com ao menos 8 caracteres e um número.</p>
 
       {success && (
-        <div className="border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-accent mb-8">
+        <div
+          className="mb-8 px-4 py-3 text-[13px]"
+          style={{
+            border: "1px solid var(--sage)",
+            color: "var(--sage)",
+            background: "rgba(140,150,115,0.08)",
+          }}
+        >
           Senha alterada com sucesso. Faça login novamente na próxima sessão.
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="max-w-sm space-y-6">
-        <div>
-          <label className="block text-xs uppercase tracking-widest text-muted mb-2">
-            Senha Atual
-          </label>
-          <input
-            type="password"
-            value={form.currentPassword}
-            onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
-            className="w-full bg-surface border border-border px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-xs uppercase tracking-widest text-muted mb-2">
-            Nova Senha
-          </label>
-          <input
-            type="password"
-            value={form.newPassword}
-            onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
-            className="w-full bg-surface border border-border px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-xs uppercase tracking-widest text-muted mb-2">
-            Confirmar Nova Senha
-          </label>
-          <input
-            type="password"
-            value={form.confirmPassword}
-            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-            className="w-full bg-surface border border-border px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent"
-            required
-          />
-        </div>
+        {[
+          { label: "Senha Atual", key: "currentPassword" as const },
+          { label: "Nova Senha", key: "newPassword" as const },
+          { label: "Confirmar Nova Senha", key: "confirmPassword" as const },
+        ].map(({ label, key }) => (
+          <div key={key}>
+            <label
+              className="mb-2 block text-[10.5px] uppercase tracking-[0.26em] text-muted"
+            >
+              {label}
+            </label>
+            <input
+              type="password"
+              value={form[key]}
+              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+              className="w-full border-0 border-b bg-transparent px-0 py-[14px] text-[15px] text-primary outline-none transition-colors focus:border-accent"
+              style={{ borderBottom: "1px solid var(--line)" }}
+              required
+            />
+          </div>
+        ))}
 
-        {error && <p className="text-xs text-danger">{error}</p>}
+        {error && (
+          <p className="text-[12px] text-danger">{error}</p>
+        )}
 
-        <Button type="submit" variant="primary" disabled={loading} className="w-full text-xs tracking-widest uppercase py-3">
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={loading}
+          className="w-full py-4"
+        >
           {loading ? "Salvando..." : "Alterar Senha"}
         </Button>
       </form>

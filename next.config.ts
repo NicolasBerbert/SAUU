@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 // Content Security Policy — enforçado (bloqueia violações).
-// font.google.com incluído para a fonte Geist usada no layout.
+// fonts.gstatic.com incluído para as fontes Abril Fatface e Questrial.
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'", // Next.js precisa de inline scripts

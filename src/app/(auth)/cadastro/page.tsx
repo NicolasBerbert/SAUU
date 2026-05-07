@@ -4,80 +4,91 @@ const tipos = [
   {
     href: "/cadastro/unifil",
     label: "Aluno Unifil",
-    description: "Possuo e-mail institucional @edu.unifil.br",
+    description: "E-mail institucional @edu.unifil.br",
     tag: "Unifil",
   },
   {
     href: "/cadastro/uel",
     label: "Instituição Externa",
-    description: "Sou estudante de outra faculdade de arquitetura (não Unifil)",
+    description: "Estudante de outra faculdade de Arquitetura, Urbanismo ou Eng. Civil",
     tag: "Externo",
   },
   {
     href: "/cadastro/formado",
     label: "Profissional Formado",
-    description: "Já sou graduado em Arquitetura ou área relacionada",
+    description: "Já graduado em Arquitetura, Urbanismo, Engenharia ou áreas afins",
     tag: "Formado",
   },
 ];
 
 export default function CadastroPage() {
   return (
-    <div className="w-full max-w-lg">
-      {/* Título */}
-      <div className="mb-10">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-px w-8 bg-accent" />
-          <span className="text-xs uppercase tracking-widest text-accent">Cadastro</span>
+    <div>
+      <div className="mb-8">
+        <div
+          className="mb-3.5 text-[11px] uppercase tracking-[0.24em]"
+          style={{ color: "var(--red)" }}
+        >
+          Cadastro
         </div>
-        <h1 className="text-3xl font-light text-primary mb-2">Criar conta</h1>
-        <p className="text-sm text-muted">
-          Selecione seu perfil para continuar.
-        </p>
+        <h2
+          className="mb-2 font-display leading-none"
+          style={{ fontSize: "42px" }}
+        >
+          Criar conta
+        </h2>
+        <p className="text-[14px] text-muted">Selecione seu perfil para continuar.</p>
       </div>
 
-      {/* Cards de tipo */}
-      <div className="flex flex-col gap-px bg-border">
+      {/* Role picker */}
+      <div className="flex flex-col gap-px" style={{ background: "var(--line)", border: "1px solid var(--line)" }}>
         {tipos.map((tipo) => (
           <Link
             key={tipo.href}
             href={tipo.href}
-            className="group flex items-center justify-between bg-surface p-6 hover:bg-surface-2 transition-colors"
+            className="group flex items-center justify-between px-5 py-5 transition-all"
+            style={{ background: "var(--paper)" }}
+            onMouseEnter={() => {}}
           >
-            <div>
-              <p className="text-sm font-medium text-primary mb-1">{tipo.label}</p>
-              <p className="text-xs text-muted">{tipo.description}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs uppercase tracking-widest text-muted border border-border px-2 py-1 hidden sm:block">
-                {tipo.tag}
-              </span>
-              <svg
-                className="h-4 w-4 text-muted group-hover:text-accent transition-colors"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
+            <div className="role-info">
+              <b
+                className="mb-1 block font-display text-[22px] font-normal leading-none text-primary"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+                {tipo.label}
+              </b>
+              <span className="text-[13px] text-muted">{tipo.description}</span>
             </div>
+            <span
+              className="ml-4 shrink-0 text-[22px] transition-transform group-hover:translate-x-1.5"
+              style={{ color: "var(--red)" }}
+            >
+              →
+            </span>
           </Link>
         ))}
       </div>
 
-      <p className="mt-8 text-center text-xs text-muted">
+      <p className="mt-8 text-center text-[13px] text-muted">
         Já tem conta?{" "}
-        <Link href="/login" className="text-accent hover:text-accent-light transition-colors">
+        <Link
+          href="/login"
+          className="border-b border-current pb-0.5 transition-colors hover:text-accent"
+          style={{ color: "var(--red)" }}
+        >
           Entrar
         </Link>
       </p>
 
-      <div className="mt-6 border-t border-border pt-6 text-center">
-        <p className="text-xs text-muted mb-2">Quer ver as palestras antes de se inscrever?</p>
+      <div
+        className="mt-8 border-t pt-6 text-center"
+        style={{ borderColor: "var(--line-soft)" }}
+      >
+        <p className="mb-2 text-[12px] text-muted">
+          Quer ver as palestras antes de se inscrever?
+        </p>
         <Link
           href="/programacao"
-          className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors underline underline-offset-4"
+          className="border-b border-current pb-0.5 text-[12px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-accent"
         >
           Ver programação completa
         </Link>

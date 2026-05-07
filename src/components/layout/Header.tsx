@@ -2,74 +2,115 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/Button";
+import { useEffect, useState } from "react";
 
 export function Header() {
   const { data: session } = useSession();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/90 backdrop-blur-sm">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="h-8 w-px bg-accent" />
-            <div>
-              <span className="text-sm font-semibold tracking-widest text-primary uppercase">
-                SAUU
+    <header
+      className="fixed inset-x-0 top-0 z-50 border-b transition-all duration-300"
+      style={{
+        borderColor: "var(--line-soft)",
+        background: scrolled
+          ? "rgba(227,226,222,0.92)"
+          : "rgba(227,226,222,0.78)",
+        backdropFilter: "blur(10px) saturate(140%)",
+        WebkitBackdropFilter: "blur(10px) saturate(140%)",
+      }}
+    >
+      <div className="mx-auto max-w-[1320px] px-8">
+        <div className="flex h-[70px] items-center justify-between gap-6">
+          {/* Brand */}
+          <Link href="/" className="group flex items-center gap-3">
+            <span
+              className="grid h-[34px] w-[34px] place-items-center rounded-full font-display text-sm text-background transition-transform duration-300 group-hover:-rotate-[8deg] group-hover:scale-105"
+              style={{ background: "var(--red)", letterSpacing: "0.04em" }}
+            >
+              C
+            </span>
+            <span className="flex flex-col leading-none">
+              <b
+                className="font-display text-lg font-normal"
+                style={{ color: "var(--red)", letterSpacing: "0.02em" }}
+              >
+                CLBB
+              </b>
+              <span
+                className="mt-1 text-[9.5px] uppercase tracking-[0.28em]"
+                style={{ color: "var(--muted)" }}
+              >
+                Arq · Urbanismo · Eng. Civil
               </span>
-              <span className="ml-2 text-xs text-muted tracking-wider hidden sm:inline">
-                Semana de Arquitetura Unifil
-              </span>
-            </div>
+            </span>
           </Link>
 
-          {/* Nav */}
-          <nav className="flex items-center gap-6">
-            <Link
-              href="/programacao"
-              className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors"
-            >
-              Programação
-            </Link>
-            <Link
-              href="/loja"
-              className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors"
-            >
-              Loja
-            </Link>
-
-            {session ? (
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/minhas-palestras"
-                  className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors"
-                >
-                  Minhas Palestras
-                </Link>
-                <Button
-                  variant="ghost"
-                  className="text-xs uppercase tracking-widest"
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                >
-                  Sair
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/login">
-                  <Button variant="ghost" className="text-xs uppercase tracking-widest">
-                    Entrar
-                  </Button>
-                </Link>
-                <Link href="/cadastro">
-                  <Button variant="primary" className="text-xs uppercase tracking-widest">
-                    Inscrever-se
-                  </Button>
-                </Link>
-              </div>
+          {/* Nav links */}
+          <nav className="hidden items-center gap-7 md:flex">
+            {[
+              { href: "/", label: "Início" },
+              { href: "/programacao", label: "Programação" },
+              { href: "/loja", label: "Loja" },
+            ].map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="relative py-2 text-[12px] uppercase tracking-[0.18em] text-primary opacity-75 transition-all hover:text-accent hover:opacity-100"
+              >
+                {label}
+              </Link>
+            ))}
+            {session && (
+              <Link
+                href="/minhas-palestras"
+                className="relative py-2 text-[12px] uppercase tracking-[0.18em] text-primary opacity-75 transition-all hover:text-accent hover:opacity-100"
+              >
+                Minhas Palestras
+              </Link>
             )}
           </nav>
+
+          {/* CTA */}
+          <div className="flex items-center gap-2.5">
+            {session ? (
+              <>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="text-[12px] uppercase tracking-[0.18em] text-primary opacity-75 transition-all hover:text-accent hover:opacity-100"
+                >
+                  Sair
+                </button>
+                <Link
+                  href="/minhas-palestras"
+                  className="inline-flex items-center gap-2 border border-transparent bg-accent px-4 py-2.5 text-[10.5px] uppercase tracking-[0.24em] text-background transition-all hover:bg-accent-dark hover:-translate-y-px"
+                >
+                  Painel <span>→</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center border border-border px-4 py-2.5 text-[10.5px] uppercase tracking-[0.24em] text-primary transition-all hover:border-accent hover:text-accent"
+                >
+                  Entrar
+                </Link>
+                <Link
+                  href="/cadastro"
+                  className="inline-flex items-center gap-2 border border-transparent bg-accent px-4 py-2.5 text-[10.5px] uppercase tracking-[0.24em] text-background transition-all hover:bg-accent-dark hover:-translate-y-px"
+                >
+                  Inscrever-se <span>→</span>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>

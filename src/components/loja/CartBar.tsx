@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { formatCurrency } from "@/lib/utils";
 
-// Barra flutuante que aparece na parte inferior da loja quando o carrinho tem itens.
 export function CartBar({ precoInscricao }: { precoInscricao: number }) {
   const { isEmpty, itemCount, total, cart } = useCart();
 
@@ -13,23 +12,35 @@ export function CartBar({ precoInscricao }: { precoInscricao: number }) {
   const totalFinal = total(precoInscricao);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-accent/30 bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-xs uppercase tracking-widest text-muted">
-            {itemCount} {itemCount === 1 ? "item" : "itens"}
-            {cart.incluirInscricao && " + inscrição"}
-          </span>
-        </div>
-        <div className="flex items-center gap-6">
-          <span className="text-sm text-accent">{formatCurrency(totalFinal)}</span>
-          <Link
-            href="/checkout"
-            className="border border-accent text-accent text-[10px] uppercase tracking-widest px-6 py-2.5 hover:bg-accent hover:text-background transition-colors"
-          >
-            Ver carrinho
-          </Link>
-        </div>
+    <div
+      className="fixed bottom-6 left-8 right-8 z-50 flex items-center justify-between px-6 py-4 shadow-2xl"
+      style={{
+        background: "var(--ink)",
+        color: "var(--bg)",
+        animation: "modalIn 0.35s cubic-bezier(0.2,0.7,0.2,1)",
+      }}
+    >
+      <span
+        className="text-[12px] uppercase tracking-[0.24em]"
+        style={{ opacity: 0.7 }}
+      >
+        {itemCount} {itemCount === 1 ? "item" : "itens"}{" "}
+        {cart.incluirInscricao && " + inscrição"} · retirada no evento
+      </span>
+      <div className="flex items-center gap-4">
+        <span
+          className="font-display text-[28px]"
+          style={{ color: "var(--bg)" }}
+        >
+          {formatCurrency(totalFinal)}
+        </span>
+        <Link
+          href="/checkout"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-[10.5px] uppercase tracking-[0.24em] transition-all"
+          style={{ background: "var(--bg)", color: "var(--red)" }}
+        >
+          Ver carrinho <span>→</span>
+        </Link>
       </div>
     </div>
   );

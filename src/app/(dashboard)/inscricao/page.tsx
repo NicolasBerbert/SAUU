@@ -41,24 +41,32 @@ export default async function InscricaoPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-10">
-        <div className="h-px w-8 bg-accent" />
-        <span className="text-xs uppercase tracking-widest text-accent">Programação</span>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-        <div>
-          <h1 className="text-3xl font-light text-primary mb-2">Selecionar Palestras</h1>
-          <p className="text-sm text-muted">
-            Selecione as palestras que deseja assistir. Você pode alterar sua seleção a qualquer momento.
-          </p>
+      <div className="mb-10">
+        <div className="mb-4 flex items-center gap-3.5">
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+          <span className="eyebrow">Programação</span>
         </div>
-        <Link
-          href="/minhas-palestras"
-          className="text-xs uppercase tracking-widest text-muted hover:text-primary transition-colors whitespace-nowrap"
-        >
-          Ver minhas inscrições
-        </Link>
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <h1
+              className="mb-2 font-display leading-none text-primary"
+              style={{ fontSize: "40px" }}
+            >
+              Selecionar{" "}
+              <em style={{ color: "var(--red)" }}>Palestras</em>
+            </h1>
+            <p className="text-[14px] text-muted">
+              Selecione as palestras que deseja assistir. Você pode alterar sua
+              seleção a qualquer momento.
+            </p>
+          </div>
+          <Link
+            href="/minhas-palestras"
+            className="whitespace-nowrap border-b border-current pb-0.5 text-[12px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-accent"
+          >
+            Ver minhas inscrições
+          </Link>
+        </div>
       </div>
 
       <SelecaoPalestras presentations={data} />

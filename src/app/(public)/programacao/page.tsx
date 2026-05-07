@@ -2,7 +2,6 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-import { Button } from "@/components/ui/Button";
 
 export default async function ProgramacaoPage() {
   const presentations = await prisma.presentation.findMany({
@@ -11,7 +10,6 @@ export default async function ProgramacaoPage() {
     orderBy: [{ day: "asc" }, { slot: "asc" }],
   });
 
-  // Agrupar por dia
   const byDay = presentations.reduce<Record<number, typeof presentations>>(
     (acc, p) => {
       if (!acc[p.day]) acc[p.day] = [];
@@ -21,89 +19,180 @@ export default async function ProgramacaoPage() {
     {}
   );
 
-  const hasAnyPresentation = presentations.length > 0;
-
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
+    <main className="mx-auto max-w-[1320px] px-8 py-[140px]">
       {/* Header */}
-      <div className="mb-14">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-px w-8 bg-accent" />
-          <span className="text-xs uppercase tracking-widest text-accent">SAUU</span>
+      <div className="mb-16 grid grid-cols-1 gap-10 md:grid-cols-[1fr_1.4fr]">
+        <div>
+          <div className="mb-4 flex items-center gap-3.5">
+            <span className="h-px w-8" style={{ background: "var(--red)" }} />
+            <span className="eyebrow">CLBB 2026</span>
+          </div>
+          <h1
+            className="font-display leading-[0.96] text-primary"
+            style={{ fontSize: "clamp(40px, 5.5vw, 72px)" }}
+          >
+            Programação
+            <br />
+            <em style={{ color: "var(--red)" }}>completa</em>
+          </h1>
         </div>
-        <h1 className="text-4xl font-light text-primary mb-3">Programação</h1>
-        <p className="text-sm text-muted max-w-lg">
-          Cinco dias de palestras com profissionais e pesquisadores da área de
-          arquitetura e urbanismo.
+        <p className="self-end text-[17px] leading-[1.65] text-primary">
+          Cinco dias, dois horários por noite — 19h00 e 20h45. Palestras
+          gratuitas mediante inscrição. Clique nos dias para abrir os horários.
         </p>
       </div>
 
-      {!hasAnyPresentation ? (
-        <div className="border border-border border-dashed p-16 text-center">
-          <p className="text-sm text-muted">
-            A programação será divulgada em breve.
-          </p>
+      {presentations.length === 0 ? (
+        <div
+          className="border px-16 py-20 text-center"
+          style={{ border: "1px dashed var(--line)" }}
+        >
+          <p className="text-[14px] text-muted">A programação será divulgada em breve.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3.5">
           {[1, 2, 3, 4, 5].map((day) => {
             const dayPresentations = byDay[day];
             if (!dayPresentations?.length) return null;
-
             return (
-              <div key={day} className="border border-border">
-                {/* Header do dia */}
-                <div className="flex items-center gap-4 px-6 py-4 border-b border-border bg-surface">
-                  <span className="text-2xl font-light text-accent">0{day}</span>
-                  <div className="h-8 w-px bg-border" />
-                  <span className="text-xs uppercase tracking-widest text-muted">
-                    Dia {day}
-                  </span>
-                </div>
-
-                {/* Palestras */}
-                <div className="flex flex-col gap-px bg-border">
-                  {dayPresentations.map((p) => {
-                    const spotsLeft = p.maxCapacity - p._count.slots;
-                    return (
-                      <div key={p.id} className="bg-surface px-6 py-6 flex flex-col sm:flex-row sm:items-start gap-6">
-                        <div className="shrink-0 w-16">
-                          <span className="text-xs font-medium text-accent">{p.slot}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-medium text-primary mb-1">{p.title}</h3>
-                          <p className="text-sm text-muted mb-2">{p.speaker}</p>
-                          {p.bio && (
-                            <p className="text-xs text-muted leading-relaxed line-clamp-2">{p.bio}</p>
-                          )}
-                        </div>
-                        <div className="shrink-0 flex items-center gap-3 sm:flex-col sm:items-end">
-                          <span className={`text-xs ${spotsLeft <= 0 ? "text-danger" : spotsLeft <= 10 ? "text-accent" : "text-muted"}`}>
-                            {spotsLeft <= 0 ? "Esgotado" : `${spotsLeft} vagas`}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              <DayRow key={day} day={day} presentations={dayPresentations} />
             );
           })}
         </div>
       )}
 
-      {/* CTA inscrição */}
-      <div className="mt-16 border border-border p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+      {/* CTA */}
+      <div
+        className="mt-16 flex flex-wrap items-center justify-between gap-6 p-8"
+        style={{ border: "1px solid var(--line)" }}
+      >
         <div>
-          <p className="text-base text-primary mb-1">Quer participar?</p>
-          <p className="text-sm text-muted">Faça sua inscrição e selecione as palestras.</p>
+          <div className="mb-1 font-display text-2xl text-primary">Quer participar?</div>
+          <div className="text-[13px] text-muted">
+            Faça sua inscrição e selecione as palestras na sua área.
+          </div>
         </div>
-        <Link href="/cadastro">
-          <Button variant="primary" className="text-xs tracking-widest uppercase px-8 py-3">
-            Inscrever-se
-          </Button>
+        <Link
+          href="/cadastro"
+          className="inline-flex items-center gap-2.5 border border-transparent px-[22px] py-[14px] text-[11px] uppercase tracking-[0.24em] text-background transition-all hover:bg-accent-dark hover:-translate-y-px"
+          style={{ background: "var(--red)" }}
+        >
+          Inscrever-se <span>→</span>
         </Link>
       </div>
     </main>
+  );
+}
+
+function DayRow({
+  day,
+  presentations,
+}: {
+  day: number;
+  presentations: Array<{
+    id: string;
+    title: string;
+    speaker: string;
+    slot: string;
+    maxCapacity: number;
+    bio?: string | null;
+    _count: { slots: number };
+  }>;
+}) {
+  return (
+    <details
+      className="group"
+      style={{ border: "1px solid var(--line)", background: "var(--paper)" }}
+      open={day === 1}
+    >
+      <summary
+        className="grid cursor-pointer select-none items-center gap-6 px-7 py-5 transition-colors hover:bg-background"
+        style={{ gridTemplateColumns: "80px 1fr auto auto", listStyle: "none" }}
+      >
+        <span
+          className="font-display text-[48px] leading-none"
+          style={{ color: "var(--red)" }}
+        >
+          0{day}
+        </span>
+        <span className="text-[14px] tracking-[0.04em] text-primary">
+          <small
+            className="mb-1 block text-[11px] uppercase tracking-[0.22em]"
+            style={{ color: "var(--muted)" }}
+          >
+            Dia {day}
+          </small>
+          {presentations.length} palestra{presentations.length !== 1 ? "s" : ""}
+        </span>
+        <span
+          className="text-[11px] uppercase tracking-[0.22em]"
+          style={{ color: "var(--muted)" }}
+        >
+          {presentations.length} palestras
+        </span>
+        <span
+          className="grid h-[34px] w-[34px] place-items-center rounded-full border text-[18px] transition-all duration-300 group-open:rotate-45"
+          style={{ borderColor: "var(--line)", color: "var(--ink)" }}
+        >
+          +
+        </span>
+      </summary>
+
+      {presentations.map((p, i) => {
+        const spotsLeft = p.maxCapacity - p._count.slots;
+        const cls =
+          spotsLeft <= 0
+            ? "full"
+            : spotsLeft <= 10
+            ? "few"
+            : "";
+        return (
+          <div
+            key={p.id}
+            className="grid items-center gap-6 px-7 py-5 transition-colors hover:bg-background"
+            style={{
+              gridTemplateColumns: "110px 1fr auto",
+              borderTop: "1px solid var(--line)",
+            }}
+          >
+            <div>
+              <div
+                className="font-display text-[24px]"
+                style={{ color: "var(--red)" }}
+              >
+                {p.slot}
+              </div>
+              <small
+                className="mt-0.5 block text-[10px] uppercase tracking-[0.24em]"
+                style={{ color: "var(--muted)" }}
+              >
+                Sessão {String.fromCharCode(65 + i)}
+              </small>
+            </div>
+            <div>
+              <div className="mb-1 text-[16px] text-primary">{p.title}</div>
+              <div className="text-[13px] text-muted">{p.speaker}</div>
+            </div>
+            <div
+              className="whitespace-nowrap px-3 py-2 text-[11px] uppercase tracking-[0.22em]"
+              style={
+                cls === "full"
+                  ? {
+                      background: "var(--ink)",
+                      color: "var(--bg)",
+                      border: "1px solid var(--ink)",
+                    }
+                  : cls === "few"
+                  ? { color: "var(--red)", border: "1px solid var(--red)" }
+                  : { color: "var(--muted)", border: "1px solid var(--line)" }
+              }
+            >
+              {spotsLeft <= 0 ? "Esgotado" : `${spotsLeft} vagas`}
+            </div>
+          </div>
+        );
+      })}
+    </details>
   );
 }

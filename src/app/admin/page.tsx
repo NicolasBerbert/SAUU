@@ -23,34 +23,69 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-10">
-        <div className="h-px w-8 bg-accent" />
-        <span className="text-xs uppercase tracking-widest text-accent">Admin</span>
+      {/* Header */}
+      <div className="mb-10">
+        <div className="mb-4 flex items-center gap-3.5">
+          <span className="h-px w-8" style={{ background: "var(--red)" }} />
+          <span className="eyebrow">Admin</span>
+        </div>
+        <h1 className="mb-1 font-display text-[48px] leading-none text-primary">
+          Painel
+        </h1>
+        <p className="text-[14px] text-muted">Visão geral do evento.</p>
       </div>
 
-      <h1 className="text-3xl font-light text-primary mb-2">Painel Administrativo</h1>
-      <p className="text-sm text-muted mb-10">Visão geral do evento.</p>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-border mb-10">
+      {/* Metrics */}
+      <div
+        className="mb-10 grid grid-cols-2 gap-px sm:grid-cols-3"
+        style={{ background: "var(--line)", border: "1px solid var(--line)" }}
+      >
         {metrics.map((m) => (
           <Link
             key={m.label}
             href={m.href}
-            className="bg-surface p-6 hover:bg-surface-2 transition-colors group"
+            className="group flex flex-col gap-2 p-6 transition-colors"
+            style={{ background: "var(--paper)" }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLAnchorElement).style.background = "var(--bg)")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLAnchorElement).style.background = "var(--paper)")
+            }
           >
-            <p className="text-3xl font-light text-accent mb-2">{m.value}</p>
-            <p className="text-xs uppercase tracking-widest text-muted group-hover:text-primary transition-colors">
+            <span
+              className="font-display text-[36px] leading-none"
+              style={{ color: "var(--red)" }}
+            >
+              {m.value}
+            </span>
+            <span
+              className="text-[11px] uppercase tracking-[0.22em] transition-colors group-hover:text-primary"
+              style={{ color: "var(--muted)" }}
+            >
               {m.label}
-            </p>
+            </span>
           </Link>
         ))}
       </div>
 
-      <div className="border border-border">
-        <div className="px-6 py-4 border-b border-border bg-surface">
-          <p className="text-xs uppercase tracking-widest text-muted">Acesso rápido</p>
+      {/* Quick access */}
+      <div style={{ border: "1px solid var(--line)" }}>
+        <div
+          className="border-b px-6 py-4"
+          style={{ borderColor: "var(--line)", background: "var(--paper)" }}
+        >
+          <p
+            className="text-[11px] uppercase tracking-[0.28em]"
+            style={{ color: "var(--muted)" }}
+          >
+            Acesso rápido
+          </p>
         </div>
-        <div className="flex flex-col gap-px bg-border">
+        <div
+          className="flex flex-col gap-px"
+          style={{ background: "var(--line)" }}
+        >
           {[
             { href: "/admin/palestras", label: "Gerenciar palestras", desc: "Adicionar, editar e remover palestras" },
             { href: "/admin/presenca", label: "Lista de presença", desc: "Registrar presença por palestra" },
@@ -61,15 +96,25 @@ export default async function AdminPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="bg-surface px-6 py-4 flex items-center justify-between hover:bg-surface-2 transition-colors group"
+              className="group flex items-center justify-between px-6 py-4 transition-colors"
+              style={{ background: "var(--paper)" }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLAnchorElement).style.background = "var(--bg)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLAnchorElement).style.background = "var(--paper)")
+              }
             >
               <div>
-                <p className="text-sm text-primary mb-0.5">{item.label}</p>
-                <p className="text-xs text-muted">{item.desc}</p>
+                <p className="mb-0.5 text-[14px] text-primary">{item.label}</p>
+                <p className="text-[12px] text-muted">{item.desc}</p>
               </div>
-              <svg className="h-4 w-4 text-muted group-hover:text-accent transition-colors shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+              <span
+                className="ml-4 shrink-0 text-[18px] transition-transform group-hover:translate-x-1"
+                style={{ color: "var(--muted)" }}
+              >
+                →
+              </span>
             </Link>
           ))}
         </div>

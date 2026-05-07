@@ -85,3 +85,6 @@ coverage/
 
 # Docker overrides
 docker-compose.override.yml
+
+Design Sauu/
+temp_secret.txt

@@ -22,16 +22,28 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 shrink-0 border-r border-border min-h-screen flex flex-col">
-      <div className="px-6 py-5 border-b border-border">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-6 w-px bg-accent" />
-          <span className="text-xs font-semibold tracking-widest text-primary uppercase">SAUU</span>
+    <aside
+      className="flex w-56 shrink-0 flex-col border-r"
+      style={{ borderColor: "var(--line)", background: "var(--paper)", minHeight: "100vh" }}
+    >
+      <div className="border-b px-6 py-5" style={{ borderColor: "var(--line)" }}>
+        <Link href="/" className="group flex items-center gap-2.5">
+          <span
+            className="grid h-7 w-7 place-items-center rounded-full font-display text-xs text-background"
+            style={{ background: "var(--red)" }}
+          >
+            C
+          </span>
+          <span className="font-display text-base font-normal" style={{ color: "var(--red)" }}>
+            CLBB
+          </span>
         </Link>
-        <p className="text-[10px] text-muted mt-1 ml-3 tracking-wider">Admin</p>
+        <p className="ml-[38px] mt-0.5 text-[10px] uppercase tracking-wider text-muted">
+          Admin
+        </p>
       </div>
 
-      <nav className="flex flex-col gap-px p-3 flex-1">
+      <nav className="flex flex-1 flex-col gap-px p-3">
         {links.map((link) => {
           const active = link.exact
             ? pathname === link.href
@@ -41,10 +53,10 @@ export function AdminNav() {
               key={link.href}
               href={link.href}
               className={cn(
-                "px-3 py-2 text-xs uppercase tracking-widest transition-colors",
+                "border-l-2 px-3 py-2.5 text-[11px] uppercase tracking-[0.18em] transition-colors",
                 active
-                  ? "text-primary bg-surface-2"
-                  : "text-muted hover:text-primary hover:bg-surface"
+                  ? "border-accent bg-background text-accent"
+                  : "border-transparent text-muted hover:bg-background hover:text-primary"
               )}
             >
               {link.label}
@@ -53,10 +65,10 @@ export function AdminNav() {
         })}
       </nav>
 
-      <div className="p-3 border-t border-border">
+      <div className="border-t p-3" style={{ borderColor: "var(--line)" }}>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="w-full px-3 py-2 text-xs uppercase tracking-widest text-muted hover:text-danger transition-colors text-left"
+          className="w-full px-3 py-2 text-left text-[11px] uppercase tracking-[0.18em] text-muted transition-colors hover:text-danger"
         >
           Sair
         </button>

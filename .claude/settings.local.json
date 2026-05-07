@@ -5,7 +5,8 @@
       "Bash(npm run:*)",
       "Bash(npx vitest:*)",
       "Bash(ls \"c:/Users/nickb/SAUU/src/app/\\(auth\\)/\")",
-      "Bash(ls \"c:/Users/nickb/SAUU/src/app/\\(auth\\)/login/\")"
+      "Bash(ls \"c:/Users/nickb/SAUU/src/app/\\(auth\\)/login/\")",
+      "Bash(Copy-Item \"c:\\\\Users\\\\Usuario\\\\Documents\\\\Repos\\\\SAUU\\\\Design Sauu\\\\lina-portrait.png\" \"c:\\\\Users\\\\Usuario\\\\Documents\\\\Repos\\\\SAUU\\\\public\\\\lina-portrait.png\" -Force)"
     ]
   }
 }

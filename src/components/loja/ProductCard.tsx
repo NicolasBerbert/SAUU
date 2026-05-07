@@ -29,61 +29,100 @@ export function ProductCard({ id, name, description, price, stock, imageUrl }: P
   }
 
   return (
-    <div className="bg-surface flex flex-col group">
-      {/* Imagem */}
-      <div className="aspect-square bg-surface-2 overflow-hidden relative">
+    <div
+      className="group flex flex-col transition-colors"
+      style={{ background: "var(--paper)" }}
+      onMouseEnter={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.background = "var(--bg)")
+      }
+      onMouseLeave={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.background = "var(--paper)")
+      }
+    >
+      {/* Image */}
+      <div
+        className="relative aspect-square overflow-hidden"
+        style={{ background: "var(--paper-2)" }}
+      >
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06] group-hover:-rotate-[2deg]"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-12 h-12 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-            </svg>
+          <div className="flex h-full w-full items-center justify-center">
+            <span
+              className="font-display text-[64px]"
+              style={{ color: "var(--muted)" }}
+            >
+              CLBB
+            </span>
           </div>
         )}
         {esgotado && (
-          <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-            <span className="text-xs uppercase tracking-widest text-muted">Esgotado</span>
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ background: "rgba(227,226,222,0.7)" }}
+          >
+            <span
+              className="text-[11px] uppercase tracking-[0.28em]"
+              style={{ color: "var(--muted)" }}
+            >
+              Esgotado
+            </span>
           </div>
         )}
         {qtdNoCarrinho > 0 && (
-          <div className="absolute top-2 right-2 bg-accent text-background text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+          <div
+            className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full text-[12px] font-bold text-background"
+            style={{ background: "var(--red)" }}
+          >
             {qtdNoCarrinho}
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="p-5 flex flex-col gap-3 flex-1">
+      <div className="flex flex-1 flex-col gap-3.5 p-5">
         <div className="flex-1">
-          <p className="text-sm text-primary mb-1">{name}</p>
+          <h3
+            className="mb-1 font-display text-[24px] leading-none text-primary"
+          >
+            {name}
+          </h3>
           {description && (
-            <p className="text-xs text-muted line-clamp-2">{description}</p>
-          )}
-        </div>
-        <div className="flex items-center justify-between pt-3 border-t border-border">
-          <span className="text-base text-accent">{formatCurrency(price)}</span>
-          {!esgotado && (
-            <span className="text-[10px] uppercase tracking-widest text-muted">
-              {stock} disponíveis
-            </span>
-          )}
-          {esgotado && (
-            <span className="text-[10px] uppercase tracking-widest text-danger">Esgotado</span>
+            <p className="line-clamp-2 text-[13px] leading-[1.5] text-muted">
+              {description}
+            </p>
           )}
         </div>
 
-        {/* Ações do carrinho */}
+        <div
+          className="flex items-center justify-between border-t pt-4"
+          style={{ borderColor: "var(--line)" }}
+        >
+          <span
+            className="font-display text-[28px]"
+            style={{ color: "var(--red)" }}
+          >
+            {formatCurrency(price)}
+          </span>
+          {!esgotado && (
+            <span className="text-[10px] uppercase tracking-[0.24em] text-muted">
+              {stock} disponíveis
+            </span>
+          )}
+        </div>
+
+        {/* Cart actions */}
         {!esgotado && (
           <div className="flex gap-2">
             {qtdNoCarrinho === 0 ? (
               <button
                 onClick={handleAdicionar}
-                className="flex-1 border border-accent text-accent text-[10px] uppercase tracking-widest py-2 hover:bg-accent hover:text-background transition-colors"
+                className="flex-1 py-2.5 text-[10px] uppercase tracking-[0.24em] text-primary transition-colors hover:bg-primary hover:text-background"
+                style={{ border: "1px solid var(--ink)" }}
               >
                 Adicionar
               </button>
@@ -91,16 +130,18 @@ export function ProductCard({ id, name, description, price, stock, imageUrl }: P
               <>
                 <button
                   onClick={handleRemover}
-                  className="border border-border text-muted text-[10px] uppercase tracking-widest px-3 py-2 hover:border-danger hover:text-danger transition-colors"
+                  className="px-3 py-2.5 text-[10px] uppercase tracking-[0.24em] text-muted transition-colors hover:border-accent hover:text-accent"
+                  style={{ border: "1px solid var(--line)" }}
                 >
                   Remover
                 </button>
                 <button
                   onClick={handleAdicionar}
                   disabled={limiteAtingido}
-                  className="flex-1 border border-accent text-accent text-[10px] uppercase tracking-widest py-2 hover:bg-accent hover:text-background transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 text-[10px] uppercase tracking-[0.24em] text-primary transition-colors hover:bg-primary hover:text-background disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ border: "1px solid var(--ink)" }}
                 >
-                  {limiteAtingido ? "Máximo" : `Adicionar mais`}
+                  {limiteAtingido ? "Máximo" : "Adicionar mais"}
                 </button>
               </>
             )}
