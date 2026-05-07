@@ -95,17 +95,23 @@ export function Footer() {
               Contato
             </h5>
             <ul className="flex flex-col gap-2.5">
-              {["sarqurbunifil@gmail.com", "Unifil · Londrina, PR"].map(
-                (item) => (
-                  <li
-                    key={item}
-                    className="text-[13px]"
-                    style={{ color: "rgba(227,226,222,0.78)" }}
-                  >
-                    {item}
-                  </li>
-                )
-              )}
+              <li className="text-[13px]" style={{ color: "rgba(227,226,222,0.78)" }}>
+                sarqurbunifil@gmail.com
+              </li>
+              <li className="text-[13px]" style={{ color: "rgba(227,226,222,0.78)" }}>
+                Unifil · Londrina, PR
+              </li>
+              <li>
+                <a
+                  href="https://instagram.com/sauunifil"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] transition-colors hover:text-accent-light"
+                  style={{ color: "rgba(227,226,222,0.78)" }}
+                >
+                  @sauunifil
+                </a>
+              </li>
             </ul>
           </div>
         </div>

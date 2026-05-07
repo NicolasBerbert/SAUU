@@ -151,14 +151,14 @@ export default async function HomePage() {
               <defs>
                 <path
                   id="circText"
-                  d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
+                  d="M 50,12 a 38,38 0 1,1 -0.001,0"
                 />
               </defs>
               <text
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: "13px",
-                  letterSpacing: "0.24em",
+                  fontSize: "10.5px",
+                  letterSpacing: "0.2em",
                   fill: "var(--red)",
                   textTransform: "uppercase",
                 }}
