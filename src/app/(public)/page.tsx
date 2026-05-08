@@ -19,19 +19,12 @@ export default async function HomePage() {
   }
 
   // Featured speakers for home page
-  const rawSpeakers = await prisma.presentation.findMany({
+  const featuredSpeakers = await prisma.palestrante.findMany({
     where: { active: true },
-    orderBy: [{ day: "asc" }, { slot: "asc" }],
-    select: { id: true, title: true, speaker: true, imageUrl: true, day: true, slot: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    take: 4,
+    select: { id: true, name: true, role: true, imageUrl: true },
   });
-  const seenNames = new Set<string>();
-  const featuredSpeakers: typeof rawSpeakers = [];
-  for (const p of rawSpeakers) {
-    if (!seenNames.has(p.speaker) && featuredSpeakers.length < 4) {
-      seenNames.add(p.speaker);
-      featuredSpeakers.push(p);
-    }
-  }
 
   // CTA button config based on auth/payment state
   const ctaHref = !session ? "/cadastro" : hasPaidRegistration ? "/minhas-palestras" : "/minhas-palestras";
@@ -430,24 +423,25 @@ export default async function HomePage() {
                   style={{ aspectRatio: "3/4", background: "var(--surface)" }}
                 >
                   {s.imageUrl ? (
-                    <Image src={s.imageUrl} alt={s.speaker} fill className="object-cover object-top" />
+                    <Image src={s.imageUrl} alt={s.name} fill className="object-cover object-top" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <span className="font-display text-[64px] leading-none" style={{ color: "var(--line)" }}>
-                        {s.speaker.charAt(0)}
+                        {s.name.charAt(0)}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="p-6">
-                  <div
-                    className="mb-1 text-[10px] uppercase tracking-[0.24em]"
-                    style={{ color: "var(--red)" }}
-                  >
-                    Dia {s.day} · {s.slot}
-                  </div>
-                  <div className="font-display text-[20px] leading-tight text-primary">{s.speaker}</div>
-                  <div className="mt-1.5 text-[12px] text-muted">{s.title}</div>
+                  {s.role && (
+                    <div
+                      className="mb-1 text-[10px] uppercase tracking-[0.24em]"
+                      style={{ color: "var(--red)" }}
+                    >
+                      {s.role}
+                    </div>
+                  )}
+                  <div className="font-display text-[20px] leading-tight text-primary">{s.name}</div>
                 </div>
               </div>
             ))}
