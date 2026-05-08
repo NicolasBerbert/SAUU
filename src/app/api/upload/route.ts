@@ -2,14 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { logger } from "@/lib/logger";
-import path from "path";
-import fs from "fs/promises";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "products");
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const BUCKET = "uploads";
+
+function getSupabaseUrl(): string {
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) throw new Error("SUPABASE_URL env var não configurada");
+  return url.replace(/\/$/, "");
+}
+
+function getServiceKey(): string {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY env var não configurada");
+  return key;
+}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -40,11 +50,7 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-
-    const hash = crypto.randomBytes(12).toString("hex");
-
-    // Derive a safe extension from MIME type or filename
+    // Derive extension
     let ext = "jpg";
     if (mimeType.startsWith("image/")) {
       const rawExt = mimeType.slice("image/".length);
@@ -53,16 +59,37 @@ export async function POST(req: NextRequest) {
       ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
     }
 
-    const filename = `${hash}.${ext}`;
-    const filepath = path.join(UPLOAD_DIR, filename);
+    const hash = crypto.randomBytes(12).toString("hex");
+    const filename = `products/${hash}.${ext}`;
 
-    await fs.writeFile(filepath, buffer);
+    const supabaseUrl = getSupabaseUrl();
+    const serviceKey = getServiceKey();
 
-    const url = `/uploads/products/${filename}`;
-    return NextResponse.json({ url });
+    // Upload to Supabase Storage via REST API
+    const uploadRes = await fetch(
+      `${supabaseUrl}/storage/v1/object/${BUCKET}/${filename}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": mimeType || "application/octet-stream",
+          "x-upsert": "true",
+        },
+        body: buffer,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text();
+      logger.error("Supabase Storage upload failed", errText);
+      throw new Error(`Storage error ${uploadRes.status}: ${errText}`);
+    }
+
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${filename}`;
+    return NextResponse.json({ url: publicUrl });
   } catch (error) {
     logger.error("POST /api/upload", error);
     const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: `Erro ao salvar: ${msg}` }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
