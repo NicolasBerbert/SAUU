@@ -250,19 +250,20 @@ export default async function HomePage() {
             paddingBlock: "18px",
           }}
         >
-          {(patrocinadores.length > 0
-            ? [...patrocinadores, ...patrocinadores]
-            : [
-                { id: "a", name: "Unifil" }, { id: "b", name: "SEC 2026" },
-                { id: "c", name: "SAUU" }, { id: "d", name: "Comissão Lina Bo Bardi" },
-                { id: "e", name: "Arquitetura e Urbanismo" }, { id: "f", name: "Engenharia Civil" },
-                { id: "g", name: "Londrina" }, { id: "h", name: "CLBB" },
-                { id: "i", name: "Unifil" }, { id: "j", name: "SEC 2026" },
-                { id: "k", name: "SAUU" }, { id: "l", name: "Comissão Lina Bo Bardi" },
-                { id: "m", name: "Arquitetura e Urbanismo" }, { id: "n", name: "Engenharia Civil" },
-                { id: "o", name: "Londrina" }, { id: "p", name: "CLBB" },
-              ]
-          ).map((s, i) => (
+          {(() => {
+            const base = patrocinadores.length > 0
+              ? patrocinadores
+              : [
+                  { id: "a", name: "Unifil" }, { id: "b", name: "SEC 2026" },
+                  { id: "c", name: "SAUU" }, { id: "d", name: "Comissão Lina Bo Bardi" },
+                  { id: "e", name: "Arquitetura e Urbanismo" }, { id: "f", name: "Engenharia Civil" },
+                  { id: "g", name: "Londrina" }, { id: "h", name: "CLBB" },
+                ];
+            // Repeat 10× per side (20 total) so the band is always filled
+            // regardless of how few sponsors there are. -50% animation loops
+            // through one side seamlessly into the identical second side.
+            return Array.from({ length: 20 }, (_, i) => ({ ...base[i % base.length], _key: i }));
+          })().map((s, i) => (
             <span
               key={`${s.id}-${i}`}
               className="flex items-center"
