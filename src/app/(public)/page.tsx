@@ -18,6 +18,13 @@ export default async function HomePage() {
     hasPaidRegistration = registration?.paymentStatus === "APPROVED";
   }
 
+  // Patrocinadores for marquee
+  const patrocinadores = await prisma.patrocinador.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    select: { id: true, name: true },
+  });
+
   // Featured speakers for home page
   const featuredSpeakers = await prisma.palestrante.findMany({
     where: { active: true },
@@ -243,14 +250,21 @@ export default async function HomePage() {
             paddingBlock: "18px",
           }}
         >
-          {[
-            "Unifil", "SEC 2026", "SAUU", "Comissão Lina Bo Bardi",
-            "Arquitetura e Urbanismo", "Engenharia Civil", "Londrina", "CLBB",
-            "Unifil", "SEC 2026", "SAUU", "Comissão Lina Bo Bardi",
-            "Arquitetura e Urbanismo", "Engenharia Civil", "Londrina", "CLBB",
-          ].map((name, i) => (
+          {(patrocinadores.length > 0
+            ? [...patrocinadores, ...patrocinadores]
+            : [
+                { id: "a", name: "Unifil" }, { id: "b", name: "SEC 2026" },
+                { id: "c", name: "SAUU" }, { id: "d", name: "Comissão Lina Bo Bardi" },
+                { id: "e", name: "Arquitetura e Urbanismo" }, { id: "f", name: "Engenharia Civil" },
+                { id: "g", name: "Londrina" }, { id: "h", name: "CLBB" },
+                { id: "i", name: "Unifil" }, { id: "j", name: "SEC 2026" },
+                { id: "k", name: "SAUU" }, { id: "l", name: "Comissão Lina Bo Bardi" },
+                { id: "m", name: "Arquitetura e Urbanismo" }, { id: "n", name: "Engenharia Civil" },
+                { id: "o", name: "Londrina" }, { id: "p", name: "CLBB" },
+              ]
+          ).map((s, i) => (
             <span
-              key={i}
+              key={`${s.id}-${i}`}
               className="flex items-center"
               style={{ paddingInline: "36px" }}
             >
@@ -258,7 +272,7 @@ export default async function HomePage() {
                 className="font-display text-[20px] whitespace-nowrap"
                 style={{ color: "var(--ink)", opacity: 0.38, letterSpacing: "0.04em" }}
               >
-                {name}
+                {s.name}
               </span>
               <span
                 style={{ marginLeft: "36px", color: "var(--red)", opacity: 0.35, fontSize: "10px" }}

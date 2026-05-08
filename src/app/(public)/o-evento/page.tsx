@@ -1,15 +1,15 @@
+import { prisma } from "@/lib/db";
+import Image from "next/image";
 import Link from "next/link";
 
-const COMMISSION = [
-  { name: "Sofia Andreoli", role: "Coordenação Geral" },
-  { name: "Lucas Magalhães", role: "Design e Comunicação" },
-  { name: "Beatriz Cunha", role: "Relações com Palestrantes" },
-  { name: "Pedro Novaes", role: "Financeiro" },
-  { name: "Mariana Teles", role: "Produção" },
-  { name: "Rafael Borba", role: "Relações Públicas" },
-];
+export const dynamic = "force-dynamic";
 
-export default function OEventoPage() {
+export default async function OEventoPage() {
+  const members = await prisma.comissaoMember.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+  });
+
   return (
     <main className="mx-auto max-w-[1320px] px-8 py-[140px]">
 
@@ -57,56 +57,71 @@ export default function OEventoPage() {
       </div>
 
       {/* ── A COMISSÃO ── */}
-      <section className="mb-20">
-        <div className="mb-10">
-          <div className="mb-3 flex items-center gap-3.5">
-            <span className="h-px w-8" style={{ background: "var(--red)" }} />
-            <span className="eyebrow">Quem faz acontecer</span>
-          </div>
-          <h2
-            className="font-display leading-[0.96] text-primary"
-            style={{ fontSize: "clamp(28px, 3.5vw, 48px)" }}
-          >
-            A Comissão
-          </h2>
-        </div>
-
-        <div
-          className="grid gap-px sm:grid-cols-2 lg:grid-cols-3"
-          style={{ background: "var(--line)", border: "1px solid var(--line)" }}
-        >
-          {COMMISSION.map((member) => (
-            <div
-              key={member.name}
-              className="flex flex-col"
-              style={{ background: "var(--paper)" }}
-            >
-              <div
-                className="flex w-full items-center justify-center"
-                style={{ aspectRatio: "1 / 1", background: "var(--surface)" }}
-              >
-                <span
-                  className="font-display leading-none"
-                  style={{ fontSize: "clamp(64px, 8vw, 96px)", color: "var(--line)" }}
-                >
-                  {member.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col p-7">
-                <h3 className="mb-2 font-display text-[20px] leading-none text-primary">
-                  {member.name}
-                </h3>
-                <p
-                  className="text-[10px] uppercase tracking-[0.22em]"
-                  style={{ color: "var(--muted)" }}
-                >
-                  {member.role}
-                </p>
-              </div>
+      {members.length > 0 && (
+        <section className="mb-20">
+          <div className="mb-10">
+            <div className="mb-3 flex items-center gap-3.5">
+              <span className="h-px w-8" style={{ background: "var(--red)" }} />
+              <span className="eyebrow">Quem faz acontecer</span>
             </div>
-          ))}
-        </div>
-      </section>
+            <h2
+              className="font-display leading-[0.96] text-primary"
+              style={{ fontSize: "clamp(28px, 3.5vw, 48px)" }}
+            >
+              A Comissão
+            </h2>
+          </div>
+
+          <div
+            className="grid gap-px sm:grid-cols-2 lg:grid-cols-3"
+            style={{ background: "var(--line)", border: "1px solid var(--line)" }}
+          >
+            {members.map((member) => (
+              <div
+                key={member.id}
+                className="flex flex-col"
+                style={{ background: "var(--paper)" }}
+              >
+                <div
+                  className="relative w-full overflow-hidden"
+                  style={{ aspectRatio: "1 / 1", background: "var(--surface)" }}
+                >
+                  {member.imageUrl ? (
+                    <Image
+                      src={member.imageUrl}
+                      alt={member.name}
+                      fill
+                      className="object-cover object-top"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <span
+                        className="font-display leading-none"
+                        style={{ fontSize: "clamp(64px, 8vw, 96px)", color: "var(--line)" }}
+                      >
+                        {member.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-1 flex-col p-7">
+                  <h3 className="mb-2 font-display text-[20px] leading-none text-primary">
+                    {member.name}
+                  </h3>
+                  {member.role && (
+                    <p
+                      className="text-[10px] uppercase tracking-[0.22em]"
+                      style={{ color: "var(--muted)" }}
+                    >
+                      {member.role}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── NOSSA MISSÃO ── */}
       <section className="mb-20">
