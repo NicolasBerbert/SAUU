@@ -78,9 +78,13 @@ export function ProductManager({ initial }: { initial: Product[] }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Local preview before upload
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
+    // Local preview via data URL (CSP-safe, no blob:)
+    const dataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target!.result as string);
+      reader.readAsDataURL(file);
+    });
+    setImagePreview(dataUrl);
 
     setUploading(true);
     setError(null);
@@ -89,7 +93,6 @@ export function ProductManager({ initial }: { initial: Product[] }) {
       fd.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
 
-      // Safely parse JSON — server might return HTML on unexpected crash
       const text = await res.text();
       let data: Record<string, unknown> = {};
       try { data = JSON.parse(text); } catch { /* non-JSON body */ }
@@ -98,7 +101,6 @@ export function ProductManager({ initial }: { initial: Product[] }) {
       if (!data.url) throw new Error("Resposta inesperada do servidor");
 
       setForm((f) => ({ ...f, imageUrl: data.url as string }));
-      URL.revokeObjectURL(objectUrl);
       setImagePreview(data.url as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro no upload");

@@ -11,6 +11,7 @@ const links = [
   { href: "/admin/presenca", label: "Presença" },
   { href: "/admin/horas", label: "Horas" },
   { href: "/admin/palestras", label: "Palestras" },
+  { href: "/admin/palestrantes", label: "Palestrantes" },
   { href: "/admin/usuarios", label: "Usuários" },
   { href: "/admin/loja", label: "Loja" },
   { href: "/admin/pedidos", label: "Pedidos" },
