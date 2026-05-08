@@ -100,6 +100,37 @@ model EventRegistration {
 }
 
 // ─────────────────────────────────────────────
+// COMISSÃO
+// ─────────────────────────────────────────────
+
+model ComissaoMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  imageUrl  String?
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// PATROCINADORES
+// ─────────────────────────────────────────────
+
+model Patrocinador {
+  id        String   @id @default(cuid())
+  name      String
+  logoUrl   String?
+  website   String?
+  tier      String?  // ex: "Ouro", "Prata", "Bronze"
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
 // PALESTRANTES
 // ─────────────────────────────────────────────
 
@@ -113,6 +144,8 @@ model Palestrante {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  presentations Presentation[]
 }
 
 // ─────────────────────────────────────────────
@@ -120,22 +153,25 @@ model Palestrante {
 // ─────────────────────────────────────────────
 
 model Presentation {
-  id          String   @id @default(cuid())
-  title       String
-  speaker     String
-  bio         String?
-  imageUrl    String?
-  day         Int
-  slot        String   // horário livre, ex: "19:00", "20:30"
-  duration    Int      @default(90) // duração em minutos
-  maxCapacity Int      @default(100)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  title          String
+  speaker        String
+  bio            String?
+  imageUrl       String?
+  day            Int
+  slot           String   // horário livre, ex: "19:00", "20:30"
+  duration       Int      @default(90) // duração em minutos
+  maxCapacity    Int      @default(100)
+  active         Boolean  @default(true)
+  palestranteId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  slots PresentationSlot[]
+  palestrante Palestrante?     @relation(fields: [palestranteId], references: [id], onDelete: SetNull)
+  slots       PresentationSlot[]
 
   @@index([day])
+  @@index([palestranteId])
 }
 
 model PresentationSlot {

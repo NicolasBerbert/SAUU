@@ -5,10 +5,17 @@ import { useRouter } from "next/navigation";
 import { cn, slotLabel } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 
+interface Palestrante {
+  id: string;
+  name: string;
+  role: string | null;
+}
+
 interface Presentation {
   id: string;
   title: string;
   speaker: string;
+  palestranteId: string | null;
   bio: string | null;
   day: number;
   slot: string;
@@ -20,6 +27,7 @@ interface Presentation {
 
 interface FormState {
   title: string;
+  palestranteId: string;
   speaker: string;
   bio: string;
   day: number;
@@ -30,6 +38,7 @@ interface FormState {
 
 const defaultForm: FormState = {
   title: "",
+  palestranteId: "",
   speaker: "",
   bio: "",
   day: 1,
@@ -38,7 +47,13 @@ const defaultForm: FormState = {
   maxCapacity: 50,
 };
 
-export function PresentationManager({ initial }: { initial: Presentation[] }) {
+export function PresentationManager({
+  initial,
+  palestrantes,
+}: {
+  initial: Presentation[];
+  palestrantes: Palestrante[];
+}) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -46,10 +61,20 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function handleSelectPalestrante(id: string) {
+    if (!id) {
+      setForm((f) => ({ ...f, palestranteId: "", speaker: "" }));
+      return;
+    }
+    const p = palestrantes.find((p) => p.id === id);
+    if (p) setForm((f) => ({ ...f, palestranteId: id, speaker: p.name }));
+  }
+
   function startEdit(p: Presentation) {
     setEditingId(p.id);
     setForm({
       title: p.title,
+      palestranteId: p.palestranteId ?? "",
       speaker: p.speaker,
       bio: p.bio ?? "",
       day: p.day,
@@ -73,7 +98,17 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
     setLoading(true);
     setError(null);
 
-    const body = { ...form, maxCapacity: Number(form.maxCapacity), day: Number(form.day) };
+    const body = {
+      title: form.title,
+      speaker: form.speaker,
+      bio: form.bio,
+      day: Number(form.day),
+      slot: form.slot,
+      duration: Number(form.duration),
+      maxCapacity: Number(form.maxCapacity),
+      palestranteId: form.palestranteId || null,
+    };
+
     const url = editingId ? `/api/palestras/${editingId}` : "/api/palestras";
     const method = editingId ? "PUT" : "POST";
 
@@ -121,6 +156,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
           slot: p.slot,
           duration: p.duration,
           maxCapacity: p.maxCapacity,
+          palestranteId: p.palestranteId ?? null,
           active: !p.active,
         }),
       });
@@ -129,6 +165,8 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
       setLoading(false);
     }
   }
+
+  const noPalestrantes = palestrantes.length === 0;
 
   return (
     <div>
@@ -169,15 +207,31 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
                 className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
               />
             </div>
-            <div>
+
+            <div className="sm:col-span-2">
               <label className="block text-xs text-muted mb-1">Palestrante</label>
-              <input
-                required
-                value={form.speaker}
-                onChange={(e) => setForm((f) => ({ ...f, speaker: e.target.value }))}
-                className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
-              />
+              {noPalestrantes ? (
+                <p className="text-xs text-muted border border-border px-3 py-2 bg-surface">
+                  Nenhum palestrante cadastrado. Cadastre na aba{" "}
+                  <a href="/admin/palestrantes" className="underline">Palestrantes</a> primeiro.
+                </p>
+              ) : (
+                <select
+                  required
+                  value={form.palestranteId}
+                  onChange={(e) => handleSelectPalestrante(e.target.value)}
+                  className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
+                >
+                  <option value="">— Selecionar palestrante —</option>
+                  {palestrantes.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}{p.role ? ` · ${p.role}` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
+
             <div>
               <label className="block text-xs text-muted mb-1">Capacidade máxima</label>
               <input
@@ -223,7 +277,7 @@ export function PresentationManager({ initial }: { initial: Presentation[] }) {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs text-muted mb-1">Bio / Descrição (opcional)</label>
+              <label className="block text-xs text-muted mb-1">Descrição da palestra (opcional)</label>
               <textarea
                 rows={3}
                 value={form.bio}

@@ -12,6 +12,8 @@ const links = [
   { href: "/admin/horas", label: "Horas" },
   { href: "/admin/palestras", label: "Palestras" },
   { href: "/admin/palestrantes", label: "Palestrantes" },
+  { href: "/admin/comissao", label: "Comissão" },
+  { href: "/admin/patrocinadores", label: "Patrocinadores" },
   { href: "/admin/usuarios", label: "Usuários" },
   { href: "/admin/loja", label: "Loja" },
   { href: "/admin/pedidos", label: "Pedidos" },
