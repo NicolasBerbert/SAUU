@@ -5,39 +5,43 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 const PLACEHOLDER_SPEAKERS = [
-  { speaker: "Ana Carolina Duarte", bio: "Arquiteta e urbanista pela FAU-USP, mestre em planejamento urbano pela Universidade de Barcelona. Coordena o escritório ACD Arquitetura, com projetos premiados em habitação de interesse social.", imageUrl: "https://i.pravatar.cc/600?img=47", talks: [{ id: "p1", title: "Habitação como direito", day: 1, slot: "19:00" }] },
-  { speaker: "Rodrigo Menezes", bio: "Engenheiro civil formado pela UFPR, especialista em estruturas metálicas. Professor da pós-graduação da Unifil e consultor de grandes obras industriais no Paraná.", imageUrl: "https://i.pravatar.cc/600?img=12", talks: [{ id: "p2", title: "Estruturas metálicas: do projeto à montagem", day: 1, slot: "20:45" }] },
-  { speaker: "Fernanda Lopes", bio: "Doutora em teoria e história da arquitetura pela UFMG. Pesquisadora do Modernismo Brasileiro e diretora do Instituto de Patrimônio de Belo Horizonte.", imageUrl: "https://i.pravatar.cc/600?img=44", talks: [{ id: "p3", title: "Modernismo e identidade: o legado de Niemeyer", day: 2, slot: "19:00" }] },
-  { speaker: "Paulo Saraiva", bio: "Arquiteto pela PUC-PR, especialista em sistemas construtivos em madeira e bambu. Fundador do coletivo Construção Viva, voltado à arquitetura bioclimática.", imageUrl: "https://i.pravatar.cc/600?img=15", talks: [{ id: "p4", title: "Bioclimatismo e materialidade: construir com o lugar", day: 2, slot: "20:45" }] },
-  { speaker: "Mariana Okafor", bio: "Urbanista e geógrafa pela UNICAMP. Pesquisadora de mobilidade urbana e acessibilidade, consultora da prefeitura de Curitiba.", imageUrl: "https://i.pravatar.cc/600?img=49", talks: [{ id: "p5", title: "Cidade para quem? Mobilidade e espaço público", day: 3, slot: "19:00" }] },
-  { speaker: "Gabriel Trevisan", bio: "Engenheiro civil pela UEL, mestre em geotecnia pela UNICAMP. Atua em fundações para grandes viadutos e obras especiais no sul do Brasil.", imageUrl: "https://i.pravatar.cc/600?img=8", talks: [{ id: "p6", title: "Fundações em solos complexos: casos do Paraná", day: 3, slot: "20:45" }] },
-  { speaker: "Beatriz Salles", bio: "Arquiteta e cenógrafa pela UNESP, com passagem pela Escola de Arquitetura de Lisboa. Dirige o estúdio Sensorama, especializado em arquitetura efêmera.", imageUrl: "https://i.pravatar.cc/600?img=32", talks: [{ id: "p7", title: "Arquitetura efêmera: espaço, tempo e experiência", day: 4, slot: "19:00" }] },
-  { speaker: "Carlos Nishimura", bio: "Engenheiro civil e pesquisador em patologia das construções pela UTFPR. Consultor em manutenção predial e inspeções técnicas em edificações históricas.", imageUrl: "https://i.pravatar.cc/600?img=53", talks: [{ id: "p8", title: "Patologia e durabilidade: o edifício ao longo do tempo", day: 4, slot: "20:45" }] },
+  { id: "p1", name: "Ana Carolina Duarte", role: "Arquiteta e Urbanista", bio: "Arquiteta e urbanista pela FAU-USP, mestre em planejamento urbano pela Universidade de Barcelona. Coordena o escritório ACD Arquitetura, com projetos premiados em habitação de interesse social.", imageUrl: "https://i.pravatar.cc/600?img=47", talks: [{ id: "p1t1", title: "Habitação como direito", day: 1, slot: "19:00" }] },
+  { id: "p2", name: "Rodrigo Menezes", role: "Engenheiro Civil", bio: "Engenheiro civil formado pela UFPR, especialista em estruturas metálicas. Professor da pós-graduação da Unifil e consultor de grandes obras industriais no Paraná.", imageUrl: "https://i.pravatar.cc/600?img=12", talks: [{ id: "p2t1", title: "Estruturas metálicas: do projeto à montagem", day: 1, slot: "20:45" }] },
+  { id: "p3", name: "Fernanda Lopes", role: "Pesquisadora", bio: "Doutora em teoria e história da arquitetura pela UFMG. Pesquisadora do Modernismo Brasileiro e diretora do Instituto de Patrimônio de Belo Horizonte.", imageUrl: "https://i.pravatar.cc/600?img=44", talks: [{ id: "p3t1", title: "Modernismo e identidade: o legado de Niemeyer", day: 2, slot: "19:00" }] },
+  { id: "p4", name: "Paulo Saraiva", role: "Arquiteto", bio: "Arquiteto pela PUC-PR, especialista em sistemas construtivos em madeira e bambu. Fundador do coletivo Construção Viva, voltado à arquitetura bioclimática.", imageUrl: "https://i.pravatar.cc/600?img=15", talks: [{ id: "p4t1", title: "Bioclimatismo e materialidade: construir com o lugar", day: 2, slot: "20:45" }] },
+  { id: "p5", name: "Mariana Okafor", role: "Urbanista", bio: "Urbanista e geógrafa pela UNICAMP. Pesquisadora de mobilidade urbana e acessibilidade, consultora da prefeitura de Curitiba.", imageUrl: "https://i.pravatar.cc/600?img=49", talks: [{ id: "p5t1", title: "Cidade para quem? Mobilidade e espaço público", day: 3, slot: "19:00" }] },
+  { id: "p6", name: "Gabriel Trevisan", role: "Engenheiro Civil", bio: "Engenheiro civil pela UEL, mestre em geotecnia pela UNICAMP. Atua em fundações para grandes viadutos e obras especiais no sul do Brasil.", imageUrl: "https://i.pravatar.cc/600?img=8", talks: [{ id: "p6t1", title: "Fundações em solos complexos: casos do Paraná", day: 3, slot: "20:45" }] },
+  { id: "p7", name: "Beatriz Salles", role: "Arquiteta e Cenógrafa", bio: "Arquiteta e cenógrafa pela UNESP, com passagem pela Escola de Arquitetura de Lisboa. Dirige o estúdio Sensorama, especializado em arquitetura efêmera.", imageUrl: "https://i.pravatar.cc/600?img=32", talks: [{ id: "p7t1", title: "Arquitetura efêmera: espaço, tempo e experiência", day: 4, slot: "19:00" }] },
+  { id: "p8", name: "Carlos Nishimura", role: "Engenheiro Civil", bio: "Engenheiro civil e pesquisador em patologia das construções pela UTFPR. Consultor em manutenção predial e inspeções técnicas em edificações históricas.", imageUrl: "https://i.pravatar.cc/600?img=53", talks: [{ id: "p8t1", title: "Patologia e durabilidade: o edifício ao longo do tempo", day: 4, slot: "20:45" }] },
 ];
 
 export default async function PalestrantesPage() {
-  const presentations = await prisma.presentation.findMany({
-    where: { active: true },
-    orderBy: [{ day: "asc" }, { slot: "asc" }],
-    select: { id: true, title: true, speaker: true, bio: true, imageUrl: true, day: true, slot: true },
-  });
+  const [palestrantes, presentations] = await Promise.all([
+    prisma.palestrante.findMany({
+      where: { active: true },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    }),
+    prisma.presentation.findMany({
+      where: { active: true },
+      orderBy: [{ day: "asc" }, { slot: "asc" }],
+      select: { id: true, title: true, speaker: true, day: true, slot: true },
+    }),
+  ]);
 
-  const speakerMap = new Map<string, {
-    speaker: string;
-    bio: string | null;
-    imageUrl: string | null;
-    talks: { id: string; title: string; day: number; slot: string }[];
-  }>();
+  const isPlaceholder = palestrantes.length === 0;
 
-  for (const p of presentations) {
-    if (!speakerMap.has(p.speaker)) {
-      speakerMap.set(p.speaker, { speaker: p.speaker, bio: p.bio, imageUrl: p.imageUrl, talks: [] });
-    }
-    speakerMap.get(p.speaker)!.talks.push({ id: p.id, title: p.title, day: p.day, slot: p.slot });
-  }
-
-  const speakers = speakerMap.size > 0 ? Array.from(speakerMap.values()) : PLACEHOLDER_SPEAKERS;
-  const isPlaceholder = speakerMap.size === 0;
+  const speakers = isPlaceholder
+    ? PLACEHOLDER_SPEAKERS
+    : palestrantes.map((p) => ({
+        id: p.id,
+        name: p.name,
+        role: p.role,
+        bio: p.bio,
+        imageUrl: p.imageUrl,
+        talks: presentations
+          .filter((pr) => pr.speaker.trim().toLowerCase() === p.name.trim().toLowerCase())
+          .map((pr) => ({ id: pr.id, title: pr.title, day: pr.day, slot: pr.slot })),
+      }));
 
   return (
     <main className="mx-auto max-w-[1320px] px-8 py-[140px]">
@@ -83,7 +87,7 @@ export default async function PalestrantesPage() {
       >
         {speakers.map((s, i) => (
           <div
-            key={s.speaker}
+            key={s.id}
             className="group flex flex-col"
             style={{ background: "var(--paper)", opacity: isPlaceholder ? 0.78 : 1 }}
           >
@@ -95,7 +99,7 @@ export default async function PalestrantesPage() {
               {s.imageUrl ? (
                 <Image
                   src={s.imageUrl}
-                  alt={s.speaker}
+                  alt={s.name}
                   fill
                   className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
                 />
@@ -105,7 +109,7 @@ export default async function PalestrantesPage() {
                     className="font-display leading-none"
                     style={{ fontSize: "clamp(80px, 10vw, 120px)", color: "var(--line)" }}
                   >
-                    {s.speaker.charAt(0).toUpperCase()}
+                    {s.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
@@ -121,32 +125,36 @@ export default async function PalestrantesPage() {
 
             {/* Info */}
             <div className="flex flex-1 flex-col p-6">
-              {/* Day + slot */}
-              <div className="mb-2 flex flex-wrap gap-x-2 gap-y-0.5">
-                {s.talks.map((t) => (
-                  <span
-                    key={t.id}
-                    className="text-[10px] uppercase tracking-[0.24em]"
-                    style={{ color: "var(--red)" }}
-                  >
-                    Dia {t.day} · {t.slot}
-                  </span>
-                ))}
-              </div>
+              {s.talks.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-x-2 gap-y-0.5">
+                  {s.talks.map((t) => (
+                    <span
+                      key={t.id}
+                      className="text-[10px] uppercase tracking-[0.24em]"
+                      style={{ color: "var(--red)" }}
+                    >
+                      Dia {t.day} · {t.slot}
+                    </span>
+                  ))}
+                </div>
+              )}
 
-              {/* Name */}
-              <h2 className="mb-2 font-display text-[22px] leading-[1.05] text-primary">
-                {s.speaker}
+              <h2 className="mb-1 font-display text-[22px] leading-[1.05] text-primary">
+                {s.name}
               </h2>
 
-              {/* Talk title */}
+              {s.role && (
+                <p className="mb-2 text-[11px] uppercase tracking-[0.18em]" style={{ color: "var(--muted)" }}>
+                  {s.role}
+                </p>
+              )}
+
               {s.talks.map((t) => (
                 <p key={t.id} className="mb-3 text-[12px] leading-[1.5]" style={{ color: "var(--muted)" }}>
                   {t.title}
                 </p>
               ))}
 
-              {/* Bio */}
               {s.bio && (
                 <p className="mt-auto border-t pt-4 text-[12px] leading-[1.65]" style={{ color: "var(--muted)", borderColor: "var(--line-soft)" }}>
                   {s.bio}

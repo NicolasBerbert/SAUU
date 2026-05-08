@@ -1,21 +1,11 @@
 import { prisma } from "@/lib/db";
-import { SpeakerManager } from "@/components/admin/SpeakerManager";
+import { PalestranteManager } from "@/components/admin/PalestranteManager";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPalestrantesPage() {
-  const presentations = await prisma.presentation.findMany({
-    orderBy: [{ day: "asc" }, { slot: "asc" }],
-    select: {
-      id: true,
-      speaker: true,
-      bio: true,
-      imageUrl: true,
-      title: true,
-      day: true,
-      slot: true,
-      active: true,
-    },
+  const palestrantes = await prisma.palestrante.findMany({
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   });
 
   return (
@@ -26,10 +16,10 @@ export default async function AdminPalestrantesPage() {
       </div>
       <h1 className="text-3xl font-light text-primary mb-2">Palestrantes</h1>
       <p className="text-sm text-muted mb-10">
-        Gerencie fotos e bios dos palestrantes. Os dados são salvos por palestra.
+        Adicione, edite ou remova palestrantes. A ordem de exibição determina a sequência na página pública.
       </p>
 
-      <SpeakerManager initial={presentations} />
+      <PalestranteManager initial={palestrantes} />
     </div>
   );
 }

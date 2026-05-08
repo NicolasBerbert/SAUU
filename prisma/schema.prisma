@@ -100,6 +100,22 @@ model EventRegistration {
 }
 
 // ─────────────────────────────────────────────
+// PALESTRANTES
+// ─────────────────────────────────────────────
+
+model Palestrante {
+  id        String   @id @default(cuid())
+  name      String
+  bio       String?
+  imageUrl  String?
+  role      String?  // ex: "Arquiteta e Urbanista", "Engenheiro Civil"
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
 // PALESTRAS
 // ─────────────────────────────────────────────
 
