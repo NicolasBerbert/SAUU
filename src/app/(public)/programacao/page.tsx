@@ -53,10 +53,6 @@ export default async function ProgramacaoPage() {
             <em style={{ color: "var(--red)" }}>completa</em>
           </h1>
         </div>
-        <p className="self-end text-[17px] leading-[1.65] text-primary">
-          Quatro noites, dois horários por noite — 19h00 e 20h45. Palestras
-          gratuitas mediante inscrição. Clique nos dias para abrir os horários.
-        </p>
       </div>
 
       {presentations.length === 0 ? (

@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
         name: parsed.name,
         email: parsed.email,
         phone: parsed.phone,
+        cpf: parsed.cpf,
         password: hashedPassword,
         institution: parsed.institution,
         type: parsed.type as UserType,

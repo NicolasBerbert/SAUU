@@ -51,6 +51,7 @@ export async function GET(_req: NextRequest) {
     ws.columns = [
       { header: "Nome", key: "nome", width: 32 },
       { header: "E-mail", key: "email", width: 36 },
+      { header: "CPF", key: "cpf", width: 18 },
       { header: "Telefone", key: "telefone", width: 16 },
       { header: "Tipo", key: "tipo", width: 12 },
       { header: "Instituição", key: "instituicao", width: 28 },
@@ -80,6 +81,7 @@ export async function GET(_req: NextRequest) {
       const row = ws.addRow({
         nome: u.name,
         email: u.email,
+        cpf: (u as Record<string, unknown>).cpf ?? "",
         telefone: u.phone,
         tipo: TYPE_LABEL[u.type] ?? u.type,
         instituicao: u.institution ?? "",

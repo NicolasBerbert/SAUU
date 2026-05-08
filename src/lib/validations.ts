@@ -13,6 +13,10 @@ const baseRegisterSchema = z.object({
     .min(10, "Telefone inválido")
     .max(15, "Telefone inválido")
     .regex(/^[\d\s\(\)\-\+]+$/, "Telefone inválido"),
+  cpf: z
+    .string()
+    .min(11, "CPF inválido")
+    .regex(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/, "CPF inválido (formato: 000.000.000-00)"),
   password: z
     .string()
     .min(8, "Senha deve ter ao menos 8 caracteres")

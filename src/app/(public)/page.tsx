@@ -18,16 +18,31 @@ export default async function HomePage() {
     hasPaidRegistration = registration?.paymentStatus === "APPROVED";
   }
 
+  // Featured speakers for home page
+  const rawSpeakers = await prisma.presentation.findMany({
+    where: { active: true },
+    orderBy: [{ day: "asc" }, { slot: "asc" }],
+    select: { id: true, title: true, speaker: true, imageUrl: true, day: true, slot: true },
+  });
+  const seenNames = new Set<string>();
+  const featuredSpeakers: typeof rawSpeakers = [];
+  for (const p of rawSpeakers) {
+    if (!seenNames.has(p.speaker) && featuredSpeakers.length < 4) {
+      seenNames.add(p.speaker);
+      featuredSpeakers.push(p);
+    }
+  }
+
   // CTA button config based on auth/payment state
   const ctaHref = !session ? "/cadastro" : hasPaidRegistration ? "/minhas-palestras" : "/minhas-palestras";
   const ctaLabel = !session ? "Inscrever-se" : hasPaidRegistration ? "Minhas palestras" : "Fazer inscrição";
   const ctaLabelLong = !session ? "Inscrever-se agora" : hasPaidRegistration ? "Ver minhas palestras" : "Fazer inscrição agora";
 
   const pillars = [
-    { num: "01", t: "Projeto", d: "Processo criativo, método e prática projetual em arquitetura e urbanismo." },
-    { num: "02", t: "Técnica", d: "Sistemas construtivos, estruturas e materialidade na engenharia civil." },
-    { num: "03", t: "Território", d: "Cidade, paisagem e as escalas do espaço construído e habitado." },
-    { num: "04", t: "Encontro", d: "Diálogo entre estudantes, profissionais e pesquisadores da área." },
+    { num: "01", t: "Saber teórico", d: "O conhecimento acadêmico valioso é o primeiro passo de qualquer grande jornada profissional, por isso convidamos você a participar de trocas que reconhecem a importância da teoria." },
+    { num: "02", t: "Prática", d: "Fundamentalmente, os saberes da arquitetura e da engenharia civil exigem aplicações práticas desde o princípio do aprendizado. Juntas, a SAUU e SEC querem enriquecer suas capacidades práticas e aumentar sua confiança projetual." },
+    { num: "03", t: "Mercado", d: "Reconhecemos a importância da parceria de empresas que viabilizam a construção civil, e valorizamos o conhecimento profissional agregado por quem já pratica Arquitetura e Engenharia. Queremos oferecer um ambiente em que esses saberes enriquecem a academia." },
+    { num: "04", t: "Território", d: "Valorizamos a localidade e temos orgulho em ser Unifil, Londrina! Por isso, a CLBB se orgulha em representar e protagonizar profissionais locais." },
   ];
 
   return (
@@ -55,7 +70,7 @@ export default async function HomePage() {
             <div className="max-w-[780px]">
               <div className="mb-9 flex items-center gap-3.5">
                 <span className="h-px w-12" style={{ background: "var(--red)" }} />
-                <span className="eyebrow">Edição 2026 · 15 a 18 de setembro</span>
+                <span className="eyebrow">Edição 2026 · 17 a 21 de agosto</span>
               </div>
 
               <h1
@@ -222,6 +237,46 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* ── SPONSORS ── */}
+      <div
+        className="mt-16 overflow-hidden border-y"
+        style={{ borderColor: "var(--line-soft)" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            width: "max-content",
+            animation: "marquee 28s linear infinite",
+            paddingBlock: "18px",
+          }}
+        >
+          {[
+            "Unifil", "SEC 2026", "SAUU", "Comissão Lina Bo Bardi",
+            "Arquitetura e Urbanismo", "Engenharia Civil", "Londrina", "CLBB",
+            "Unifil", "SEC 2026", "SAUU", "Comissão Lina Bo Bardi",
+            "Arquitetura e Urbanismo", "Engenharia Civil", "Londrina", "CLBB",
+          ].map((name, i) => (
+            <span
+              key={i}
+              className="flex items-center"
+              style={{ paddingInline: "36px" }}
+            >
+              <span
+                className="font-display text-[20px] whitespace-nowrap"
+                style={{ color: "var(--ink)", opacity: 0.38, letterSpacing: "0.04em" }}
+              >
+                {name}
+              </span>
+              <span
+                style={{ marginLeft: "36px", color: "var(--red)", opacity: 0.35, fontSize: "10px" }}
+              >
+                ◆
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* ── ABOUT ── */}
       <section
         className="border-y"
@@ -245,11 +300,6 @@ export default async function HomePage() {
                 cidade e projeto
               </h2>
             </div>
-            <p className="self-end text-[17px] leading-[1.65] text-primary md:max-w-[620px]">
-              A semana acadêmica integrada Unifil, organizada pela Comissão Lina Bo Bardi,
-              traz em 2026 a junção dos saberes da Arquitetura e Urbanismo e Engenharia Civil,
-              para uma experiência ainda mais enriquecedora.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-20 md:grid-cols-[1.2fr_1fr]">
@@ -261,7 +311,7 @@ export default async function HomePage() {
               >
                 {[
                   { k: "Duração", v: "4 noites" },
-                  { k: "Datas", v: "15–18 set" },
+                  { k: "Datas", v: "17–21 ago" },
                   { k: "Local", v: "Unifil" },
                   { k: "Público", v: "Aberto" },
                 ].map(({ k, v }) => (
@@ -296,7 +346,7 @@ export default async function HomePage() {
                   lineHeight: "1.25",
                 }}
               >
-                Arquitetura é uma <em>aventura</em>: um chamamento à vida.
+                Não é preciso <em>muito</em> para ser muito.
                 <span
                   className="mt-2.5 block font-sans text-[11px] uppercase tracking-[0.28em]"
                   style={{ color: "var(--muted)" }}
@@ -308,16 +358,7 @@ export default async function HomePage() {
 
             <div className="flex flex-col gap-4">
               <p className="text-[16px] leading-[1.7]">
-                Nascemos da vontade de fazer um evento à altura dos cursos e da
-                cidade. Inspirados pela arquiteta ítalo-brasileira que entendeu o
-                popular como matéria de projeto, construímos uma programação que
-                cruza projeto, técnica e território.
-              </p>
-              <p className="text-[16px] leading-[1.7] text-muted">
-                Não cobramos do público que apenas assista — convidamos a
-                participar das mesas, a opinar nos debates, a frequentar o saguão
-                entre uma palestra e outra. A CLBB é, antes de tudo, um espaço
-                público temporário.
+                Nossa motivação é promover a conexão real do saber acadêmico com o mercado de trabalho, construindo uma programação que intersecciona a prática e o conhecimento teórico. Esse ano com contribuições maiores do que nunca de profissionais ainda mais diversos. O objetivo da Comissão Lina Bo Bardi é garantir que sua experiência valha a pena!
               </p>
               <Link
                 href="/programacao"
@@ -350,6 +391,93 @@ export default async function HomePage() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── CONVIDADOS DA SEMANA ── */}
+      <section className="mx-auto max-w-[1320px] px-8 py-[100px]">
+        <div className="mb-10 flex items-end justify-between">
+          <div>
+            <div className="mb-4 flex items-center gap-3.5">
+              <span className="h-px w-8" style={{ background: "var(--red)" }} />
+              <span className="eyebrow">Convidados da semana</span>
+            </div>
+            <h2
+              className="font-display leading-[0.96] text-primary"
+              style={{ fontSize: "clamp(36px, 5vw, 60px)" }}
+            >
+              Quem vai
+              <br />
+              <em style={{ color: "var(--red)" }}>palestrar</em>
+            </h2>
+          </div>
+          <Link
+            href="/palestrantes"
+            className="hidden border-b border-current pb-1 text-[12px] uppercase tracking-[0.2em] text-primary transition-colors hover:text-accent md:block"
+          >
+            Ver todos →
+          </Link>
+        </div>
+
+        {featuredSpeakers.length > 0 ? (
+          <div
+            className="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-4"
+            style={{ background: "var(--line)", border: "1px solid var(--line)" }}
+          >
+            {featuredSpeakers.map((s) => (
+              <div key={s.id} className="flex flex-col" style={{ background: "var(--paper)" }}>
+                <div
+                  className="relative overflow-hidden"
+                  style={{ aspectRatio: "3/4", background: "var(--surface)" }}
+                >
+                  {s.imageUrl ? (
+                    <Image src={s.imageUrl} alt={s.speaker} fill className="object-cover object-top" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <span className="font-display text-[64px] leading-none" style={{ color: "var(--line)" }}>
+                        {s.speaker.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <div
+                    className="mb-1 text-[10px] uppercase tracking-[0.24em]"
+                    style={{ color: "var(--red)" }}
+                  >
+                    Dia {s.day} · {s.slot}
+                  </div>
+                  <div className="font-display text-[20px] leading-tight text-primary">{s.speaker}</div>
+                  <div className="mt-1.5 text-[12px] text-muted">{s.title}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-4"
+            style={{ background: "var(--line)", border: "1px solid var(--line)" }}
+          >
+            {[
+              { name: "Ana Carolina Duarte", label: "Dia 1 · 19:00", talk: "Habitação como direito: experiências em HIS no Brasil", img: "https://i.pravatar.cc/400?img=47" },
+              { name: "Rodrigo Menezes", label: "Dia 1 · 20:45", talk: "Estruturas metálicas: do projeto à montagem", img: "https://i.pravatar.cc/400?img=12" },
+              { name: "Fernanda Lopes", label: "Dia 2 · 19:00", talk: "Modernismo e identidade: revisitando o legado de Niemeyer", img: "https://i.pravatar.cc/400?img=44" },
+              { name: "Paulo Saraiva", label: "Dia 2 · 20:45", talk: "Bioclimatismo e materialidade: construir com o lugar", img: "https://i.pravatar.cc/400?img=15" },
+            ].map((s) => (
+              <div key={s.name} className="flex flex-col" style={{ background: "var(--paper)", opacity: 0.72 }}>
+                <div className="relative overflow-hidden" style={{ aspectRatio: "3/4", background: "var(--surface)" }}>
+                  <Image src={s.img} alt={s.name} fill className="object-cover object-top" />
+                </div>
+                <div className="p-6">
+                  <div className="mb-1 text-[10px] uppercase tracking-[0.24em]" style={{ color: "var(--red)" }}>
+                    {s.label}
+                  </div>
+                  <div className="font-display text-[20px] leading-tight text-primary">{s.name}</div>
+                  <div className="mt-1.5 text-[12px] text-muted">{s.talk}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── CTA ── */}

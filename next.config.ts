@@ -28,7 +28,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      { protocol: "https", hostname: "i.pravatar.cc" },
+    ],
   },
   async headers() {
     return [

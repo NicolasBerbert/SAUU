@@ -203,7 +203,7 @@ export default async function RelatoriosPage() {
           <div className="px-4 py-3 flex items-center justify-between gap-4">
             <div>
               <p className="text-xs text-primary font-medium">Lista de inscritos</p>
-              <p className="text-[10px] text-muted">Nome, e-mail, tipo, RA, status de pagamento e palestras — formato Excel</p>
+              <p className="text-[10px] text-muted">Nome, e-mail, CPF, telefone, tipo, RA, status de pagamento e palestras — formato Excel</p>
             </div>
             <ExportButton href="/api/admin/exportar" label="Baixar .xlsx" />
           </div>

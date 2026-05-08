@@ -47,7 +47,7 @@ export function Header({ showLoja = true }: { showLoja?: boolean }) {
                 className="mt-1 text-[9.5px] uppercase tracking-[0.28em]"
                 style={{ color: "var(--muted)" }}
               >
-                Arq · Urbanismo · Eng. Civil
+                Arq · Urb · Eng. Civil
               </span>
             </span>
           </Link>
@@ -56,6 +56,7 @@ export function Header({ showLoja = true }: { showLoja?: boolean }) {
           <nav className="hidden items-center gap-7 md:flex">
             {[
               { href: "/", label: "Início" },
+              { href: "/o-evento", label: "O Evento" },
               { href: "/programacao", label: "Programação" },
               { href: "/palestrantes", label: "Palestrantes" },
               ...(showLoja ? [{ href: "/loja", label: "Loja" }] : []),

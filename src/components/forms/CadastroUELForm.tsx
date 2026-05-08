@@ -80,6 +80,18 @@ export function CadastroUELForm() {
         <FormError message={errors.phone?.message} />
       </div>
 
+      {/* CPF */}
+      <div>
+        <Label htmlFor="cpf">CPF</Label>
+        <Input
+          id="cpf"
+          placeholder="000.000.000-00"
+          error={!!errors.cpf}
+          {...register("cpf")}
+        />
+        <FormError message={errors.cpf?.message} />
+      </div>
+
       {/* Instituição */}
       <div>
         <Label htmlFor="institution">Instituição de origem</Label>
