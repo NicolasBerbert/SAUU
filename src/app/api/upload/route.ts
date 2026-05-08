@@ -4,32 +4,13 @@ import { authOptions } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import path from "path";
 import fs from "fs/promises";
-import sharp from "sharp";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "products");
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-  "image/heic",
-  "image/heif",
-  "image/tiff",
-  "image/bmp",
-  "image/svg+xml",
-  // Allow unknown/blank MIME — sharp will detect format from buffer
-  "application/octet-stream",
-  "",
-];
-const OUTPUT_SIZE = 800;
 
-// POST /api/upload — upload and process a product image (admin only)
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.type !== "ADMIN") {
@@ -44,13 +25,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Nenhum arquivo enviado" }, { status: 400 });
     }
 
-    // Reject only clearly non-image MIME types (allow blank/unknown for broad compat)
-    const mimeType = file.type ?? "";
+    const mimeType = (file.type ?? "").toLowerCase();
     if (mimeType && !mimeType.startsWith("image/") && mimeType !== "application/octet-stream") {
-      return NextResponse.json(
-        { error: "Arquivo não é uma imagem. Use JPEG, PNG, WebP, AVIF, GIF, etc." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Arquivo não é uma imagem." }, { status: 400 });
     }
 
     if (file.size > MAX_SIZE_BYTES) {
@@ -67,35 +44,25 @@ export async function POST(req: NextRequest) {
 
     const hash = crypto.randomBytes(12).toString("hex");
 
-    let filename: string;
-    let filepath: string;
-
-    // Try sharp processing first; fall back to saving original on failure
-    try {
-      filename = `${hash}.webp`;
-      filepath = path.join(UPLOAD_DIR, filename);
-
-      await sharp(buffer)
-        .resize(OUTPUT_SIZE, OUTPUT_SIZE, {
-          fit: "cover",
-          position: "centre",
-        })
-        .webp({ quality: 85 })
-        .toFile(filepath);
-    } catch (sharpError) {
-      logger.error("sharp processing failed, saving original", sharpError);
-
-      // Derive extension from MIME or filename
-      const ext = mimeType.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
-      filename = `${hash}.${ext}`;
-      filepath = path.join(UPLOAD_DIR, filename);
-      await fs.writeFile(filepath, buffer);
+    // Derive a safe extension from MIME type or filename
+    let ext = "jpg";
+    if (mimeType.startsWith("image/")) {
+      const rawExt = mimeType.slice("image/".length);
+      ext = rawExt === "jpeg" ? "jpg" : rawExt === "svg+xml" ? "svg" : rawExt;
+    } else if (file.name) {
+      ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
     }
+
+    const filename = `${hash}.${ext}`;
+    const filepath = path.join(UPLOAD_DIR, filename);
+
+    await fs.writeFile(filepath, buffer);
 
     const url = `/uploads/products/${filename}`;
     return NextResponse.json({ url });
   } catch (error) {
     logger.error("POST /api/upload", error);
-    return NextResponse.json({ error: "Erro ao salvar imagem. Tente outro formato." }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: `Erro ao salvar: ${msg}` }, { status: 500 });
   }
 }
