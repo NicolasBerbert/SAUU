@@ -10,9 +10,8 @@ const required = [
 const requiredInProduction = [
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
-  "EMAIL_HOST",
-  "EMAIL_USER",
-  "EMAIL_PASS",
+  "RESEND_API_KEY",
+  "EMAIL_FROM",
   "EVENT_REGISTRATION_PRICE",
   "ADMIN_ALERT_EMAIL",
 ] as const;
