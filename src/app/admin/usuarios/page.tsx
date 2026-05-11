@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserTypeButton } from "@/components/admin/UserTypeButton";
+import { UserActionButtons } from "@/components/admin/UserActionButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,14 @@ const statusLabel: Record<string, string> = {
   APPROVED: "Pago",
   PENDING: "Pendente",
   REJECTED: "Recusado",
+  REFUNDED: "Reembolsado",
 };
 
 const statusColor: Record<string, string> = {
   APPROVED: "text-success",
   PENDING: "text-accent",
   REJECTED: "text-danger",
+  REFUNDED: "text-muted",
 };
 
 export default async function AdminUsuariosPage() {
@@ -73,13 +76,13 @@ export default async function AdminUsuariosPage() {
 
       <div className="border border-border">
         {/* Header */}
-        <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 border-b border-border bg-surface">
-          <p className="col-span-3 text-[10px] uppercase tracking-widest text-muted">Nome</p>
+        <div className="hidden lg:grid lg:grid-cols-12 gap-4 px-6 py-3 border-b border-border bg-surface">
+          <p className="col-span-2 text-[10px] uppercase tracking-widest text-muted">Nome</p>
           <p className="col-span-3 text-[10px] uppercase tracking-widest text-muted">E-mail</p>
           <p className="col-span-1 text-[10px] uppercase tracking-widest text-muted">Tipo</p>
           <p className="col-span-2 text-[10px] uppercase tracking-widest text-muted">Inscrição</p>
           <p className="col-span-1 text-[10px] uppercase tracking-widest text-muted">Palestras</p>
-          <p className="col-span-2 text-[10px] uppercase tracking-widest text-muted text-right">Ações</p>
+          <p className="col-span-3 text-[10px] uppercase tracking-widest text-muted text-right">Ações</p>
         </div>
 
         <div className="flex flex-col gap-px bg-border">
@@ -94,33 +97,42 @@ export default async function AdminUsuariosPage() {
             return (
               <div
                 key={u.id}
-                className="bg-surface px-6 py-4 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 sm:items-center"
+                className="bg-surface px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 lg:items-center"
               >
-                <div className="sm:col-span-3 min-w-0">
+                <div className="lg:col-span-2 min-w-0">
                   <p className="text-sm text-primary truncate">{u.name}</p>
                   {isSelf && (
-                    <span className="text-[10px] uppercase tracking-widest text-muted">
-                      você
-                    </span>
+                    <span className="text-[10px] uppercase tracking-widest text-muted">você</span>
+                  )}
+                  {!u.emailVerified && u.type !== "ADMIN" && (
+                    <span className="text-[10px] uppercase tracking-widest text-danger">e-mail não verificado</span>
                   )}
                 </div>
-                <p className="sm:col-span-3 text-xs text-muted truncate">{u.email}</p>
-                <p className={`sm:col-span-1 text-xs ${typeColor[u.type] ?? "text-muted"}`}>
+                <p className="lg:col-span-3 text-xs text-muted truncate">{u.email}</p>
+                <p className={`lg:col-span-1 text-xs ${typeColor[u.type] ?? "text-muted"}`}>
                   {typeLabel[u.type] ?? u.type}
                 </p>
-                <p className={`sm:col-span-2 text-xs ${status ? statusColor[status] : "text-muted"}`}>
+                <p className={`lg:col-span-2 text-xs ${status ? statusColor[status] : "text-muted"}`}>
                   {u.type === "ADMIN" ? "—" : (status ? statusLabel[status] ?? status : "—")}
                 </p>
-                <p className="sm:col-span-1 text-xs text-muted">
+                <p className="lg:col-span-1 text-xs text-muted">
                   {u.type === "ADMIN" ? "—" : u._count.presentationSlots}
                 </p>
-                <div className="sm:col-span-2 flex justify-end">
+                <div className="lg:col-span-3 flex flex-wrap gap-2 justify-end">
                   <UserTypeButton
                     userId={u.id}
                     currentType={u.type}
                     userName={u.name}
                     isSelf={isSelf}
                   />
+                  {u.type !== "ADMIN" && !isSelf && (
+                    <UserActionButtons
+                      userId={u.id}
+                      userName={u.name}
+                      emailVerified={u.emailVerified}
+                      paymentStatus={status}
+                    />
+                  )}
                 </div>
               </div>
             );

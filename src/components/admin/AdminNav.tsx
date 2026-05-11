@@ -18,6 +18,7 @@ const links = [
   { href: "/admin/loja", label: "Loja" },
   { href: "/admin/pedidos", label: "Pedidos" },
   { href: "/admin/configuracoes", label: "Configurações" },
+  { href: "/admin/audit", label: "Audit Log" },
 ];
 
 export function AdminNav() {

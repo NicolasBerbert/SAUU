@@ -8,7 +8,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",  // Tailwind gera estilos inline
   "img-src 'self' data: https:",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://api.mercadopago.com https://sdk.mercadopago.com",
+  "connect-src 'self' https://api.stripe.com https://api.resend.com",
   "frame-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",

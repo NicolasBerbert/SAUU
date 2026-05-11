@@ -14,6 +14,14 @@ export default withAuth(
       return NextResponse.next();
     }
 
+    // ADMIN sem 2FA configurado → força setup obrigatório
+    if ((token?.type as string) === "TOTP_SETUP_REQUIRED") {
+      if (!pathname.startsWith("/admin/2fa/setup")) {
+        return NextResponse.redirect(new URL("/admin/2fa/setup", req.url));
+      }
+      return NextResponse.next();
+    }
+
     // Protege rotas admin - apenas ADMIN pode acessar
     if (pathname.startsWith("/admin") && token?.type !== "ADMIN") {
       return NextResponse.redirect(new URL("/login?erro=acesso_negado", req.url));
@@ -37,5 +45,6 @@ export const config = {
     "/admin/:path*",
     "/perfil/:path*",
     "/login/2fa",
+    "/admin/2fa/:path*",
   ],
 };

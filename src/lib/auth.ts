@@ -7,6 +7,7 @@ import { checkRateLimit } from "@/lib/rateLimit";
 import { verifyTotpCode, createPendingToken, verifyPendingToken } from "@/lib/totp";
 
 const TOTP_PENDING = "TOTP_PENDING" as const;
+const TOTP_SETUP_REQUIRED = "TOTP_SETUP_REQUIRED" as const;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -50,16 +51,27 @@ export const authOptions: NextAuthOptions = {
         const passwordMatch = await bcrypt.compare(credentials.password, user.password);
         if (!passwordMatch) return null;
 
-        // ADMIN com 2FA ativo → retorna sessão pendente
-        if (user.type === UserType.ADMIN && user.totpSecret) {
-          const pendingToken = createPendingToken(user.id);
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            type: TOTP_PENDING,
-            pendingToken,
-          } as any;
+        // ADMIN: sempre exige 2FA
+        if (user.type === UserType.ADMIN) {
+          if (user.totpSecret) {
+            // 2FA já configurado → aguarda código
+            const pendingToken = createPendingToken(user.id);
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              type: TOTP_PENDING,
+              pendingToken,
+            } as any;
+          } else {
+            // 2FA não configurado → força setup na primeira entrada
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              type: TOTP_SETUP_REQUIRED,
+            } as any;
+          }
         }
 
         return { id: user.id, name: user.name, email: user.email, type: user.type } as any;

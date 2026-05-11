@@ -7,7 +7,13 @@ import QRCode from "qrcode";
 
 export async function POST() {
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.type !== "ADMIN") {
+  const allowedTypes = ["ADMIN", "TOTP_SETUP_REQUIRED"];
+  if (!session || !allowedTypes.includes(session.user?.type as string)) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+  // Verify in DB that user is actually ADMIN
+  const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { type: true } });
+  if (dbUser?.type !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 

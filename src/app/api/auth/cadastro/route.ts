@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "E-mail já cadastrado" }, { status: 409 });
     }
 
-    const hashedPassword = await bcrypt.hash(parsed.password, 10);
+    const hashedPassword = await bcrypt.hash(parsed.password, 12);
 
     const user = await prisma.user.create({
       data: {

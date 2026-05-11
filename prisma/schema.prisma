@@ -259,6 +259,17 @@ model SiteConfig {
 }
 
 // ─────────────────────────────────────────────
+// IDEMPOTÊNCIA DO WEBHOOK STRIPE
+// ─────────────────────────────────────────────
+
+model ProcessedStripeEvent {
+  id          String   @id // Stripe event ID (evt_xxx)
+  processedAt DateTime @default(now())
+
+  @@index([processedAt])
+}
+
+// ─────────────────────────────────────────────
 // AUDIT LOG — rastreio de ações financeiras e admin
 // ─────────────────────────────────────────────
 

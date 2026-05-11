@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { sendConfirmationEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { audit } from "@/lib/audit";
+import { sendAdminAlert } from "@/lib/alert";
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
@@ -21,9 +22,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Assinatura inválida" }, { status: 400 });
   }
 
+  // Idempotência: ignorar eventos já processados
+  try {
+    await prisma.processedStripeEvent.create({ data: { id: event.id } });
+  } catch {
+    // Unique constraint violation = evento duplicado
+    return NextResponse.json({ received: true });
+  }
+
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
+
+      // Só processa se o pagamento foi realmente coletado
+      if (session.payment_status !== "paid") {
+        return NextResponse.json({ received: true });
+      }
+
       const meta = session.metadata as {
         userId: string;
         tipo: "inscricao" | "pedido_loja" | "combinado";
@@ -37,14 +52,6 @@ export async function POST(req: NextRequest) {
       }
 
       if (meta.tipo === "inscricao") {
-        const existing = await prisma.eventRegistration.findUnique({
-          where: { userId: meta.userId },
-          select: { paymentId: true, paymentStatus: true },
-        });
-        if (existing?.paymentId === session.id && existing.paymentStatus === "APPROVED") {
-          return NextResponse.json({ received: true });
-        }
-
         await prisma.eventRegistration.update({
           where: { userId: meta.userId },
           data: { paymentStatus: "APPROVED", paymentId: session.id },
@@ -63,14 +70,6 @@ export async function POST(req: NextRequest) {
       }
 
       if (meta.tipo === "pedido_loja" && meta.orderId) {
-        const existing = await prisma.order.findUnique({
-          where: { id: meta.orderId },
-          select: { paymentId: true, status: true },
-        });
-        if (existing?.paymentId === session.id && existing.status === "APPROVED") {
-          return NextResponse.json({ received: true });
-        }
-
         await prisma.order.update({
           where: { id: meta.orderId },
           data: { status: "APPROVED", paymentId: session.id },
@@ -147,6 +146,73 @@ export async function POST(req: NextRequest) {
           metadata: { motivo: "sessao_stripe_expirada" },
         });
       }
+    }
+
+    // Estorno: atualiza status e notifica admin
+    if (event.type === "charge.refunded") {
+      const charge = event.data.object;
+      const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : null;
+
+      if (paymentIntentId) {
+        const [reg, order] = await Promise.all([
+          prisma.eventRegistration.findFirst({ where: { paymentId: { contains: paymentIntentId } } }),
+          prisma.order.findFirst({ where: { paymentId: { contains: paymentIntentId } } }),
+        ]);
+
+        if (reg) {
+          await prisma.eventRegistration.update({
+            where: { id: reg.id },
+            data: { paymentStatus: "REFUNDED" },
+          });
+          await audit({
+            actorType: "WEBHOOK",
+            action: "REGISTRATION_REFUNDED",
+            entityId: reg.id,
+            entityType: "EventRegistration",
+            metadata: { chargeId: charge.id, paymentIntentId },
+          });
+        }
+
+        if (order) {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { status: "REFUNDED" },
+          });
+          await audit({
+            actorType: "WEBHOOK",
+            action: "ORDER_REFUNDED",
+            entityId: order.id,
+            entityType: "Order",
+            metadata: { chargeId: charge.id, paymentIntentId },
+          });
+        }
+
+        await sendAdminAlert(
+          "Estorno processado",
+          `PaymentIntent: ${paymentIntentId}\nCharge: ${charge.id}\nValor: R$ ${(charge.amount_refunded / 100).toFixed(2)}`,
+          "AVISO"
+        );
+      }
+    }
+
+    // Disputa/chargeback: notifica admin urgente
+    if (event.type === "charge.dispute.created") {
+      const dispute = event.data.object;
+      const chargeId = typeof dispute.charge === "string" ? dispute.charge : "";
+
+      await audit({
+        actorType: "WEBHOOK",
+        action: "CHARGE_DISPUTE_CREATED",
+        entityId: chargeId,
+        entityType: "Charge",
+        metadata: { disputeId: dispute.id, amount: dispute.amount, reason: dispute.reason },
+      });
+
+      await sendAdminAlert(
+        "DISPUTA (chargeback) aberta",
+        `Dispute ID: ${dispute.id}\nCharge: ${chargeId}\nValor: R$ ${(dispute.amount / 100).toFixed(2)}\nMotivo: ${dispute.reason}\n\nAcesse o Stripe Dashboard imediatamente.`,
+        "ERRO"
+      );
     }
 
     return NextResponse.json({ received: true });
