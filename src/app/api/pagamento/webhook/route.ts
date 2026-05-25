@@ -25,9 +25,14 @@ export async function POST(req: NextRequest) {
   // Idempotência: ignorar eventos já processados
   try {
     await prisma.processedStripeEvent.create({ data: { id: event.id } });
-  } catch {
-    // Unique constraint violation = evento duplicado
-    return NextResponse.json({ received: true });
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      // Unique constraint = evento duplicado, já processado
+      return NextResponse.json({ received: true });
+    }
+    // Qualquer outro erro (ex: tabela não existe ainda) — loga mas continua processando
+    // para não perder pagamentos reais
+    logger.error("webhook idempotency", err);
   }
 
   try {
