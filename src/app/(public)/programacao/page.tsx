@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { slotMinutes } from "@/lib/utils";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -20,11 +21,13 @@ export default async function ProgramacaoPage() {
   const ctaHref = !session ? "/cadastro" : hasPaidRegistration ? "/minhas-palestras" : "/minhas-palestras";
   const ctaLabel = !session ? "Inscrever-se" : hasPaidRegistration ? "Ver minhas palestras" : "Fazer inscrição";
 
-  const presentations = await prisma.presentation.findMany({
-    where: { active: true },
-    include: { _count: { select: { slots: true } } },
-    orderBy: [{ day: "asc" }, { slot: "asc" }],
-  });
+  const presentations = (
+    await prisma.presentation.findMany({
+      where: { active: true },
+      include: { _count: { select: { slots: true } } },
+      orderBy: { day: "asc" },
+    })
+  ).sort((a, b) => a.day - b.day || slotMinutes(a.slot) - slotMinutes(b.slot));
 
   const byDay = presentations.reduce<Record<number, typeof presentations>>(
     (acc, p) => {

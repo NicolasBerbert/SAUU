@@ -58,7 +58,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           className="relative flex items-end justify-between gap-6 text-[11px] uppercase tracking-[0.26em]"
           style={{ opacity: 0.85 }}
         >
-          <span>CLBB 2026 · 15 a 18 de setembro · Unifil Londrina</span>
+          <span>CLBB 2026 · 17 a 21 de agosto · Unifil Londrina</span>
           <span className="font-display text-2xl" style={{ textTransform: "none", letterSpacing: 0 }}>
             CLBB
           </span>
