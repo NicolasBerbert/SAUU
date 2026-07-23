@@ -64,7 +64,7 @@ export default async function PalestrantesPage() {
         </div>
         <div className="max-w-[400px]">
           <p className="text-[15px] leading-[1.7]" style={{ color: "var(--muted)" }}>
-            Profissionais e pesquisadores reunidos pela Comissão Lina Bo Bardi para as quatro noites do SAUU + SEC 2026.
+            Profissionais e pesquisadores reunidos pela Comissão Lina Bo Bardi para os quatro dias do SAUU + SEC 2026.
           </p>
           {isPlaceholder && (
             <p className="mt-3 text-[10px] uppercase tracking-[0.28em]" style={{ color: "var(--muted)" }}>

@@ -97,7 +97,7 @@ export default async function HomePage() {
               <p
                 className="mt-8 max-w-[520px] text-[17px] leading-[1.55] text-primary"
               >
-                Quatro noites de palestras, debates e encontros sobre{" "}
+                Quatro dias de palestras, debates e encontros sobre{" "}
                 <em>Arquitetura, Urbanismo e Engenharia Civil</em>. Organizado
                 pela Comissão Lina Bo Bardi — estudantes da Unifil Londrina.
               </p>
@@ -210,10 +210,10 @@ export default async function HomePage() {
           style={{ background: "var(--line)", border: "1px solid var(--line)" }}
         >
           {[
-            { n: "4", l: "noites de evento" },
-            { n: "10", l: "palestras" },
-            { n: "8", l: "convidados" },
-            { n: "600+", l: "vagas no auditório" },
+            { n: "4", l: "dias de evento" },
+            { n: "34", l: "palestras" },
+            { n: "48", l: "convidados" },
+            { n: "400", l: "lugares no auditório" },
           ].map((item) => (
             <div
               key={item.l}
@@ -318,7 +318,7 @@ export default async function HomePage() {
                 style={{ background: "var(--line)", border: "1px solid var(--line)" }}
               >
                 {[
-                  { k: "Duração", v: "4 noites" },
+                  { k: "Duração", v: "4 dias" },
                   { k: "Datas", v: "17–21 ago" },
                   { k: "Local", v: "Unifil" },
                   { k: "Público", v: "Aberto" },
@@ -508,10 +508,10 @@ export default async function HomePage() {
             >
               Garanta sua vaga
               <br />
-              <em style={{ color: "var(--paper-2)" }}>nas quatro noites.</em>
+              <em style={{ color: "var(--paper-2)" }}>nos quatro dias.</em>
             </h3>
             <p className="max-w-[480px] text-[15px] opacity-85">
-              Inscrição única dá acesso às quatro noites, com seleção de
+              Inscrição única dá acesso aos quatro dias, com seleção de
               palestras após confirmação do pagamento. Vagas limitadas no
               auditório.
             </p>

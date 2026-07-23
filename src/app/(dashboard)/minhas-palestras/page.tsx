@@ -103,7 +103,7 @@ export default async function MinhasPalestrasPage() {
                 Inscrição confirmada
               </h3>
               <p className="text-[13px] text-muted">
-                Você já pode selecionar suas palestras nas quatro noites.
+                Você já pode selecionar suas palestras nos quatro dias.
               </p>
             </>
           )}
