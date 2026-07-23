@@ -44,7 +44,7 @@ export function CadastroFormadoForm() {
       return;
     }
 
-    router.push("/login?cadastro=sucesso");
+    router.push("/verificar-email");
   }
 
   return (

@@ -34,7 +34,7 @@ export async function sendVerificationEmail(
   token: string
 ): Promise<void> {
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const link = `${baseUrl}/verificar-email?token=${token}`;
+  const link = `${baseUrl}/api/auth/verificar-email?token=${token}`;
 
   await sendEmail(
     to,
@@ -109,7 +109,7 @@ export async function sendAdminVerificationEmail(
   token: string
 ): Promise<void> {
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const link = `${baseUrl}/verificar-email?token=${token}`;
+  const link = `${baseUrl}/api/auth/verificar-email?token=${token}`;
 
   try {
     await sendEmail(

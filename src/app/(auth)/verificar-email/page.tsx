@@ -1,11 +1,18 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 interface Props {
-  searchParams: Promise<{ sucesso?: string; erro?: string }>;
+  searchParams: Promise<{ sucesso?: string; erro?: string; token?: string }>;
 }
 
 export default async function VerificarEmailPage({ searchParams }: Props) {
   const params = await searchParams;
+
+  // Compatibilidade: links antigos apontavam para esta página com ?token=.
+  // Encaminha para a rota da API que efetivamente valida o e-mail.
+  if (params.token && !params.sucesso && !params.erro) {
+    redirect(`/api/auth/verificar-email?token=${encodeURIComponent(params.token)}`);
+  }
 
   if (params.sucesso) {
     return (

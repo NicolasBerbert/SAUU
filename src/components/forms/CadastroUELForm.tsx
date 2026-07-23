@@ -37,7 +37,7 @@ export function CadastroUELForm() {
       return;
     }
 
-    router.push("/login?cadastro=sucesso");
+    router.push("/verificar-email");
   }
 
   return (
