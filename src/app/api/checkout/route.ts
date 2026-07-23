@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
       mode: "payment",
       customer_email: user.email,
       line_items: lineItems,
-      success_url: `${baseUrl}/checkout/sucesso`,
+      success_url: `${baseUrl}/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/checkout/cancelado`,
       metadata: {
         userId: session.user.id,

@@ -23,7 +23,7 @@ export async function criarSessaoInscricao(params: {
         quantity: 1,
       },
     ],
-    success_url: `${baseUrl()}/checkout/sucesso`,
+    success_url: `${baseUrl()}/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl()}/checkout/cancelado`,
     metadata: {
       userId: params.userId,
