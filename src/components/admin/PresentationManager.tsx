@@ -15,7 +15,7 @@ interface Presentation {
   id: string;
   title: string;
   speaker: string;
-  palestranteId: string | null;
+  speakers: { palestranteId: string }[];
   bio: string | null;
   day: number;
   slot: string;
@@ -27,8 +27,7 @@ interface Presentation {
 
 interface FormState {
   title: string;
-  palestranteId: string;
-  speaker: string;
+  palestranteIds: string[];
   bio: string;
   day: number;
   slot: string;
@@ -38,8 +37,7 @@ interface FormState {
 
 const defaultForm: FormState = {
   title: "",
-  palestranteId: "",
-  speaker: "",
+  palestranteIds: [],
   bio: "",
   day: 1,
   slot: "19:00",
@@ -61,21 +59,20 @@ export function PresentationManager({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handleSelectPalestrante(id: string) {
-    if (!id) {
-      setForm((f) => ({ ...f, palestranteId: "", speaker: "" }));
-      return;
-    }
-    const p = palestrantes.find((p) => p.id === id);
-    if (p) setForm((f) => ({ ...f, palestranteId: id, speaker: p.name }));
+  function togglePalestrante(id: string) {
+    setForm((f) => ({
+      ...f,
+      palestranteIds: f.palestranteIds.includes(id)
+        ? f.palestranteIds.filter((x) => x !== id)
+        : [...f.palestranteIds, id],
+    }));
   }
 
   function startEdit(p: Presentation) {
     setEditingId(p.id);
     setForm({
       title: p.title,
-      palestranteId: p.palestranteId ?? "",
-      speaker: p.speaker,
+      palestranteIds: p.speakers.map((s) => s.palestranteId),
       bio: p.bio ?? "",
       day: p.day,
       slot: p.slot,
@@ -98,15 +95,20 @@ export function PresentationManager({
     setLoading(true);
     setError(null);
 
+    if (form.palestranteIds.length === 0) {
+      setError("Selecione ao menos um palestrante.");
+      setLoading(false);
+      return;
+    }
+
     const body = {
       title: form.title,
-      speaker: form.speaker,
       bio: form.bio,
       day: Number(form.day),
       slot: form.slot,
       duration: Number(form.duration),
       maxCapacity: Number(form.maxCapacity),
-      palestranteId: form.palestranteId || null,
+      palestranteIds: form.palestranteIds,
     };
 
     const url = editingId ? `/api/palestras/${editingId}` : "/api/palestras";
@@ -150,13 +152,12 @@ export function PresentationManager({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: p.title,
-          speaker: p.speaker,
           bio: p.bio ?? "",
           day: p.day,
           slot: p.slot,
           duration: p.duration,
           maxCapacity: p.maxCapacity,
-          palestranteId: p.palestranteId ?? null,
+          palestranteIds: p.speakers.map((s) => s.palestranteId),
           active: !p.active,
         }),
       });
@@ -209,26 +210,42 @@ export function PresentationManager({
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs text-muted mb-1">Palestrante</label>
+              <label className="block text-xs text-muted mb-1">
+                Palestrante(s) <span className="text-muted font-normal">— marque um ou mais (roda de conversa)</span>
+              </label>
               {noPalestrantes ? (
                 <p className="text-xs text-muted border border-border px-3 py-2 bg-surface">
                   Nenhum palestrante cadastrado. Cadastre na aba{" "}
                   <a href="/admin/palestrantes" className="underline">Palestrantes</a> primeiro.
                 </p>
               ) : (
-                <select
-                  required
-                  value={form.palestranteId}
-                  onChange={(e) => handleSelectPalestrante(e.target.value)}
-                  className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
-                >
-                  <option value="">— Selecionar palestrante —</option>
-                  {palestrantes.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}{p.role ? ` · ${p.role}` : ""}
-                    </option>
-                  ))}
-                </select>
+                <div className="max-h-52 overflow-y-auto border border-border bg-background divide-y divide-border">
+                  {palestrantes.map((p) => {
+                    const checked = form.palestranteIds.includes(p.id);
+                    return (
+                      <label
+                        key={p.id}
+                        className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm text-primary hover:bg-surface"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => togglePalestrante(p.id)}
+                          className="accent-accent"
+                        />
+                        <span>
+                          {p.name}
+                          {p.role ? <span className="text-muted"> · {p.role}</span> : null}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {form.palestranteIds.length > 0 && (
+                <p className="mt-1.5 text-[11px] text-muted">
+                  {form.palestranteIds.length} palestrante{form.palestranteIds.length !== 1 ? "s" : ""} selecionado{form.palestranteIds.length !== 1 ? "s" : ""}
+                </p>
               )}
             </div>
 

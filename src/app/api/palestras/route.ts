@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { presentationSchema } from "@/lib/validations";
+import { resolveSpeakers } from "@/lib/presentations";
 
 // GET /api/palestras - público, retorna palestras com contagem de vagas
 export async function GET() {
@@ -29,13 +30,19 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = presentationSchema.parse(body);
+    const { palestranteIds, ...rest } = presentationSchema.parse(body);
+    const { speaker, create } = await resolveSpeakers(palestranteIds);
 
-    const presentation = await prisma.presentation.create({ data });
+    const presentation = await prisma.presentation.create({
+      data: { ...rest, speaker, speakers: { create } },
+    });
     return NextResponse.json(presentation, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 422 });
+    }
+    if (error instanceof Error && error.message === "PALESTRANTE_NOT_FOUND") {
+      return NextResponse.json({ error: "Palestrante inválido" }, { status: 422 });
     }
     console.error("[POST /api/palestras]", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });

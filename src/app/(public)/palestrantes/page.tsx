@@ -16,17 +16,19 @@ const PLACEHOLDER_SPEAKERS = [
 ];
 
 export default async function PalestrantesPage() {
-  const [palestrantes, presentations] = await Promise.all([
-    prisma.palestrante.findMany({
-      where: { active: true },
-      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-    }),
-    prisma.presentation.findMany({
-      where: { active: true },
-      orderBy: [{ day: "asc" }, { slot: "asc" }],
-      select: { id: true, title: true, speaker: true, day: true, slot: true },
-    }),
-  ]);
+  const palestrantes = await prisma.palestrante.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    include: {
+      presentations: {
+        where: { presentation: { active: true } },
+        orderBy: { presentation: { day: "asc" } },
+        select: {
+          presentation: { select: { id: true, title: true, day: true, slot: true } },
+        },
+      },
+    },
+  });
 
   const isPlaceholder = palestrantes.length === 0;
 
@@ -38,9 +40,12 @@ export default async function PalestrantesPage() {
         role: p.role,
         bio: p.bio,
         imageUrl: p.imageUrl,
-        talks: presentations
-          .filter((pr) => pr.speaker.trim().toLowerCase() === p.name.trim().toLowerCase())
-          .map((pr) => ({ id: pr.id, title: pr.title, day: pr.day, slot: pr.slot })),
+        talks: p.presentations.map((ps) => ({
+          id: ps.presentation.id,
+          title: ps.presentation.title,
+          day: ps.presentation.day,
+          slot: ps.presentation.slot,
+        })),
       }));
 
   return (

@@ -93,7 +93,6 @@ export const productSchema = z.object({
 
 export const presentationSchema = z.object({
   title: z.string().min(3, "Título obrigatório"),
-  speaker: z.string().min(2, "Nome do palestrante obrigatório"),
   bio: z.string().optional(),
   imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   day: z.number().int().min(1).max(4),
@@ -101,7 +100,8 @@ export const presentationSchema = z.object({
   duration: z.number().int().positive("Duração deve ser positiva"),
   maxCapacity: z.number().int().positive("Vagas deve ser positivo"),
   active: z.boolean().optional(),
-  palestranteId: z.string().optional().nullable(),
+  // Um ou mais palestrantes (roda de conversa / mesa redonda).
+  palestranteIds: z.array(z.string().min(1)).min(1, "Selecione ao menos um palestrante"),
 });
 
 // Alias for backwards compatibility with existing references to "uel"

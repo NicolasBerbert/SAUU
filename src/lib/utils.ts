@@ -16,6 +16,13 @@ export function slotLabel(slot: string): string {
   return slot;
 }
 
+// Combina nomes de palestrantes para exibição: "A", "A & B", "A, B & C".
+export function joinNames(names: string[]): string {
+  const clean = names.map((n) => n.trim()).filter(Boolean);
+  if (clean.length <= 1) return clean[0] ?? "";
+  return `${clean.slice(0, -1).join(", ")} & ${clean[clean.length - 1]}`;
+}
+
 // slot é texto livre ("19:00", "9h30"), então ordenar como string coloca "9:00" depois de "14:00".
 // Horário não reconhecido vai para o fim.
 export function slotMinutes(slot: string): number {

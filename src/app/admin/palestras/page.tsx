@@ -7,7 +7,10 @@ export default async function AdminPalestrasPage() {
   const [presentations, palestrantes] = await Promise.all([
     prisma.presentation.findMany({
       orderBy: [{ day: "asc" }, { slot: "asc" }],
-      include: { _count: { select: { slots: true } } },
+      include: {
+        _count: { select: { slots: true } },
+        speakers: { orderBy: { order: "asc" }, select: { palestranteId: true } },
+      },
     }),
     prisma.palestrante.findMany({
       where: { active: true },

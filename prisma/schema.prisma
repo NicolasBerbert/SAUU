@@ -145,7 +145,7 @@ model Palestrante {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  presentations Presentation[]
+  presentations PresentationSpeaker[]
 }
 
 // ─────────────────────────────────────────────
@@ -155,7 +155,7 @@ model Palestrante {
 model Presentation {
   id             String   @id @default(cuid())
   title          String
-  speaker        String
+  speaker        String   // nomes dos palestrantes combinados (denormalizado, para exibição)
   bio            String?
   imageUrl       String?
   day            Int
@@ -163,14 +163,26 @@ model Presentation {
   duration       Int      @default(90) // duração em minutos
   maxCapacity    Int      @default(100)
   active         Boolean  @default(true)
-  palestranteId  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  palestrante Palestrante?     @relation(fields: [palestranteId], references: [id], onDelete: SetNull)
-  slots       PresentationSlot[]
+  speakers PresentationSpeaker[]
+  slots    PresentationSlot[]
 
   @@index([day])
+}
+
+// Vínculo N:N entre uma palestra e seus palestrantes (roda de conversa,
+// mesa redonda etc. — mais de um palestrante por palestra).
+model PresentationSpeaker {
+  presentationId String
+  palestranteId  String
+  order          Int    @default(0) // ordem de exibição dos nomes
+
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  palestrante  Palestrante  @relation(fields: [palestranteId], references: [id], onDelete: Cascade)
+
+  @@id([presentationId, palestranteId])
   @@index([palestranteId])
 }
 
