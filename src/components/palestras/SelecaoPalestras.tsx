@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, presentationsConflict } from "@/lib/utils";
 
 interface Presentation {
   id: string;
@@ -11,6 +11,7 @@ interface Presentation {
   bio: string | null;
   day: number;
   slot: string;
+  duration: number;
   maxCapacity: number;
   spotsLeft: number;
   isUserRegistered: boolean;
@@ -18,15 +19,24 @@ interface Presentation {
 
 interface SelecaoPalestrasProps {
   presentations: Presentation[];
+  locked: boolean;
 }
 
-export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
+export function SelecaoPalestras({ presentations, locked }: SelecaoPalestrasProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const registeredCount = presentations.filter((p) => p.isUserRegistered).length;
+  const registered = presentations.filter((p) => p.isUserRegistered);
+  const registeredCount = registered.length;
+
+  // Uma palestra conflita se acontece ao mesmo tempo que outra já selecionada.
+  function conflictsWithSelection(p: Presentation): boolean {
+    if (p.isUserRegistered) return false;
+    return registered.some((r) => presentationsConflict(p, r));
+  }
 
   const days = [1, 2, 3, 4];
 
@@ -52,8 +62,37 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
     startTransition(() => router.refresh());
   }
 
+  async function confirmarSelecao() {
+    if (
+      !confirm(
+        "Confirmar suas palestras? Após confirmar, você NÃO poderá mais adicionar ou remover palestras."
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    setConfirming(true);
+    const res = await fetch("/api/inscricoes/confirmar", { method: "POST" });
+    if (!res.ok) {
+      const body = await res.json();
+      setError(body.error ?? "Erro ao confirmar. Tente novamente.");
+      setConfirming(false);
+      return;
+    }
+    setConfirming(false);
+    startTransition(() => router.refresh());
+  }
+
   return (
     <div>
+      {/* Banner de confirmação */}
+      {locked && (
+        <div className="mb-6 flex items-center gap-2 border border-accent/30 bg-accent/5 px-4 py-3 text-xs text-accent">
+          <span>✓</span>
+          <span>Suas palestras estão confirmadas. A seleção não pode mais ser alterada.</span>
+        </div>
+      )}
+
       {/* Contador */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-xs text-muted">
@@ -91,6 +130,9 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
                 {dayPresentations.map((p) => {
                   const isLoading = loadingId === p.id;
                   const isFull = p.spotsLeft <= 0 && !p.isUserRegistered;
+                  const hasConflict = conflictsWithSelection(p);
+                  const disabled =
+                    locked || isLoading || isPending || (!p.isUserRegistered && (isFull || hasConflict));
 
                   return (
                     <div
@@ -114,21 +156,32 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
                       </div>
 
                       <div className="flex items-center gap-4 shrink-0">
-                        <span className={cn("text-xs", isFull ? "text-danger" : "text-muted")}>
-                          {isFull ? "Esgotado" : `${p.spotsLeft} vaga${p.spotsLeft !== 1 ? "s" : ""}`}
-                        </span>
-                        <button
-                          onClick={() => toggleInscricao(p)}
-                          disabled={isLoading || (isFull && !p.isUserRegistered) || isPending}
+                        <span
                           className={cn(
-                            "text-xs uppercase tracking-widest px-4 py-2 border transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-                            p.isUserRegistered
-                              ? "border-border text-muted hover:border-danger hover:text-danger"
-                              : "border-accent text-accent hover:bg-accent hover:text-background"
+                            "text-xs",
+                            isFull || (hasConflict && !p.isUserRegistered) ? "text-danger" : "text-muted"
                           )}
                         >
-                          {isLoading ? "..." : p.isUserRegistered ? "Cancelar" : "Inscrever-se"}
-                        </button>
+                          {isFull
+                            ? "Esgotado"
+                            : hasConflict && !p.isUserRegistered
+                            ? "Conflito de horário"
+                            : `${p.spotsLeft} vaga${p.spotsLeft !== 1 ? "s" : ""}`}
+                        </span>
+                        {!locked && (
+                          <button
+                            onClick={() => toggleInscricao(p)}
+                            disabled={disabled}
+                            className={cn(
+                              "text-xs uppercase tracking-widest px-4 py-2 border transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
+                              p.isUserRegistered
+                                ? "border-border text-muted hover:border-danger hover:text-danger"
+                                : "border-accent text-accent hover:bg-accent hover:text-background"
+                            )}
+                          >
+                            {isLoading ? "..." : p.isUserRegistered ? "Cancelar" : "Inscrever-se"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -138,6 +191,22 @@ export function SelecaoPalestras({ presentations }: SelecaoPalestrasProps) {
           );
         })}
       </div>
+
+      {/* Confirmar e travar seleção */}
+      {!locked && (
+        <div className="mt-8 flex flex-col items-start gap-3 border border-border bg-surface px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted">
+            Ao confirmar, sua seleção será <strong className="text-primary">travada</strong> e não poderá mais ser alterada.
+          </p>
+          <button
+            onClick={confirmarSelecao}
+            disabled={registeredCount === 0 || confirming || isPending}
+            className="text-xs uppercase tracking-widest px-6 py-3 border border-accent bg-accent text-background transition-colors hover:bg-accent-dark disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {confirming ? "Confirmando..." : "Confirmar palestras"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

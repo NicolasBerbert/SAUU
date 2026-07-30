@@ -30,3 +30,16 @@ export function slotMinutes(slot: string): number {
   if (!match) return Number.MAX_SAFE_INTEGER;
   return Number(match[1]) * 60 + Number(match[2] ?? 0);
 }
+
+// Duas palestras se sobrepõem no tempo quando ocorrem no mesmo dia e seus
+// intervalos [início, início+duração) se cruzam. Bordas encostando (uma termina
+// exatamente quando a outra começa) NÃO são conflito.
+export function presentationsConflict(
+  a: { day: number; slot: string; duration: number },
+  b: { day: number; slot: string; duration: number }
+): boolean {
+  if (a.day !== b.day) return false;
+  const startA = slotMinutes(a.slot);
+  const startB = slotMinutes(b.slot);
+  return startA < startB + b.duration && startB < startA + a.duration;
+}
