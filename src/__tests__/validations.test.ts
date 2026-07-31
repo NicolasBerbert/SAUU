@@ -24,6 +24,7 @@ import {
 const baseValido = {
   name: "Fulano de Tal",
   phone: "(43) 99999-9999",
+  cpf: "123.456.789-09",
   password: "senha123",
   confirmPassword: "senha123",
   institution: "Unifil",
@@ -266,14 +267,30 @@ describe("productSchema", () => {
 describe("presentationSchema", () => {
   const palestraValida = {
     title: "Arquitetura Bioclimática",
-    speaker: "Ana Souza",
     day: 1,
-    slot: "SLOT_19H00" as const,
+    slot: "19:00",
+    duration: 90,
     maxCapacity: 50,
+    palestranteIds: ["clx000000000000000000000a"],
   };
 
   it("aceita palestra válida", () => {
     expect(() => presentationSchema.parse(palestraValida)).not.toThrow();
+  });
+
+  it("aceita vários palestrantes (roda de conversa)", () => {
+    expect(() =>
+      presentationSchema.parse({
+        ...palestraValida,
+        palestranteIds: ["clx000000000000000000000a", "clx000000000000000000000b"],
+      })
+    ).not.toThrow();
+  });
+
+  it("rejeita sem nenhum palestrante", () => {
+    expect(
+      presentationSchema.safeParse({ ...palestraValida, palestranteIds: [] }).success
+    ).toBe(false);
   });
 
   it("aceita dia 4 (último dia)", () => {
@@ -290,16 +307,10 @@ describe("presentationSchema", () => {
     expect(presentationSchema.safeParse({ ...palestraValida, day: 5 }).success).toBe(false);
   });
 
-  it("rejeita slot inválido", () => {
+  it("rejeita slot vazio", () => {
     expect(
-      presentationSchema.safeParse({ ...palestraValida, slot: "SLOT_18H00" }).success
+      presentationSchema.safeParse({ ...palestraValida, slot: "" }).success
     ).toBe(false);
-  });
-
-  it("aceita SLOT_20H45", () => {
-    expect(() =>
-      presentationSchema.parse({ ...palestraValida, slot: "SLOT_20H45" })
-    ).not.toThrow();
   });
 
   it("rejeita capacidade zero", () => {

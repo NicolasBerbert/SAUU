@@ -110,6 +110,8 @@ export function TotpSetupPanel({ enabled: initialEnabled }: Props) {
             </p>
             {qrDataUrl && (
               <div className="flex justify-center p-4 bg-white rounded">
+                {/* QR code é um data URI gerado no cliente; next/image não se aplica. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={qrDataUrl} alt="QR Code 2FA" width={200} height={200} />
               </div>
             )}

@@ -46,7 +46,7 @@ export default async function OEventoPage() {
           className="font-display italic leading-[1.05] text-primary"
           style={{ fontSize: "clamp(48px, 8vw, 96px)", maxWidth: "1000px" }}
         >
-          "Não é preciso muito para ser muito."
+          &ldquo;Não é preciso muito para ser muito.&rdquo;
         </blockquote>
         <p
           className="mt-8 text-[11px] uppercase tracking-[0.28em]"

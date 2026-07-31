@@ -64,6 +64,8 @@ export function ProductCard({ id, name, description, price, stock, imageUrl, siz
         style={{ background: "var(--paper-2)" }}
       >
         {imageUrl ? (
+          // URL externa (Supabase Storage); next/image exigiria remotePatterns.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
             alt={name}

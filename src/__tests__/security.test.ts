@@ -22,6 +22,7 @@ describe("Injeção via campos de entrada", () => {
   const baseValido = {
     name: "Teste Silva",
     phone: "(43) 99999-9999",
+    cpf: "123.456.789-09",
     password: "senha123",
     confirmPassword: "senha123",
     institution: "Unifil",

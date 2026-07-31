@@ -91,6 +91,8 @@ export default function AdminTotpSetupPage() {
               <p className="text-sm text-muted">Escaneie o QR code com o aplicativo autenticador:</p>
               {qrDataUrl && (
                 <div className="flex justify-center p-4 bg-white">
+                  {/* QR code é um data URI gerado no cliente; next/image não se aplica. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={qrDataUrl} alt="QR Code 2FA" width={200} height={200} />
                 </div>
               )}
