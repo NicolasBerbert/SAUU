@@ -79,8 +79,8 @@ export function SelecaoPalestras({ presentations, locked }: SelecaoPalestrasProp
       setConfirming(false);
       return;
     }
-    setConfirming(false);
-    startTransition(() => router.refresh());
+    // Sucesso: leva para a tela de confirmação.
+    router.push("/inscricao/confirmado");
   }
 
   return (

@@ -41,17 +41,23 @@ export async function POST() {
     data: { presentationsConfirmedAt: new Date() },
   });
 
-  // E-mail com o resumo das palestras (não bloqueia a resposta)
+  // E-mail com o resumo das palestras. Aguarda o envio (serverless congela
+  // promises não-aguardadas após a resposta). Falha no e-mail não invalida a
+  // confirmação já gravada.
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { email: true, name: true },
   });
   if (user) {
-    sendPresentationConfirmationEmail(
-      user.email,
-      user.name,
-      slots.map((s) => ({ title: s.presentation.title, day: s.presentation.day, slot: s.presentation.slot }))
-    ).catch((err) => logger.error("sendPresentationConfirmationEmail", err));
+    try {
+      await sendPresentationConfirmationEmail(
+        user.email,
+        user.name,
+        slots.map((s) => ({ title: s.presentation.title, day: s.presentation.day, slot: s.presentation.slot }))
+      );
+    } catch (err) {
+      logger.error("sendPresentationConfirmationEmail", err);
+    }
   }
 
   return NextResponse.json({ message: "Palestras confirmadas" });

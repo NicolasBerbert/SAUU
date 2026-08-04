@@ -37,7 +37,7 @@ export function CadastroUELForm() {
       return;
     }
 
-    router.push("/verificar-email");
+    router.push(`/verificar-email?email=${encodeURIComponent(data.email)}`);
   }
 
   return (

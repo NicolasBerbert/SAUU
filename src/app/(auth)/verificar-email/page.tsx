@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ReenviarVerificacao } from "@/components/auth/ReenviarVerificacao";
 
 interface Props {
-  searchParams: Promise<{ sucesso?: string; erro?: string; token?: string }>;
+  searchParams: Promise<{ sucesso?: string; erro?: string; token?: string; email?: string }>;
 }
 
 export default async function VerificarEmailPage({ searchParams }: Props) {
@@ -93,9 +94,12 @@ export default async function VerificarEmailPage({ searchParams }: Props) {
               Enviamos um link de confirmação para o e-mail cadastrado.
             </p>
             <p className="text-sm text-muted">
-              Verifique sua caixa de entrada e clique no link para ativar sua conta.
-              O link expira em <strong className="text-foreground">24 horas</strong>.
+              Verifique sua caixa de entrada (e o spam) e clique no link para ativar
+              sua conta. O link expira em <strong className="text-foreground">24 horas</strong>.
             </p>
+            <div className="mx-auto max-w-sm text-left">
+              <ReenviarVerificacao defaultEmail={params.email ?? ""} />
+            </div>
           </>
         )}
       </div>

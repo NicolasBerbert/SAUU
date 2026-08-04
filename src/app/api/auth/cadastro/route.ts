@@ -70,10 +70,15 @@ export async function POST(req: NextRequest) {
       data: { userId: user.id, token: tokenHash, expiresAt },
     });
 
-    // Enviar email em background — não bloquear a resposta
-    sendVerificationEmail(user.email, user.name, rawToken).catch((err) =>
-      logger.error("sendVerificationEmail", err)
-    );
+    // IMPORTANTE: aguardar o envio. Em ambiente serverless (Vercel) uma promise
+    // não-aguardada após a resposta é congelada e o e-mail não chega — era por
+    // isso que o cadastro não enviava, mas o reenvio pelo admin (que aguarda)
+    // funcionava. Se o envio falhar, a conta ainda é criada (usa-se o reenvio).
+    try {
+      await sendVerificationEmail(user.email, user.name, rawToken);
+    } catch (err) {
+      logger.error("sendVerificationEmail", err);
+    }
 
     return NextResponse.json({ message: "Conta criada com sucesso" }, { status: 201 });
   } catch (error: unknown) {
