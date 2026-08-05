@@ -3,9 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { audit } from "@/lib/audit";
-import { sendConfirmationEmail } from "@/lib/email";
 import { getClientIp } from "@/lib/rateLimit";
-import { logger } from "@/lib/logger";
 
 // POST /api/admin/usuarios/[id]/marcar-pago
 // Marca inscrição como APPROVED manualmente (isenta/cortesia)
@@ -48,11 +46,6 @@ export async function POST(
     entityType: "EventRegistration",
     metadata: { targetUserId: id, targetName: user.name, ip: getClientIp(req) },
   });
-
-  // Envia confirmação por e-mail em background
-  sendConfirmationEmail(user.email, user.name).catch((err) =>
-    logger.error("marcar-pago sendConfirmationEmail", err)
-  );
 
   return NextResponse.json({ ok: true });
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
-import { sendConfirmationEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { audit } from "@/lib/audit";
 import { sendAdminAlert } from "@/lib/alert";
@@ -69,9 +68,6 @@ export async function POST(req: NextRequest) {
           entityType: "EventRegistration",
           metadata: { sessionId: session.id },
         });
-
-        const user = await prisma.user.findUnique({ where: { id: meta.userId } });
-        if (user) await sendConfirmationEmail(user.email, user.name);
       }
 
       if (meta.tipo === "pedido_loja" && meta.orderId) {
@@ -115,11 +111,6 @@ export async function POST(req: NextRequest) {
           entityType: orderId ? "Order" : "EventRegistration",
           metadata: { sessionId: session.id, incluirInscricao, orderId },
         });
-
-        if (incluirInscricao) {
-          const user = await prisma.user.findUnique({ where: { id: meta.userId } });
-          if (user) await sendConfirmationEmail(user.email, user.name);
-        }
       }
     }
 

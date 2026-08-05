@@ -57,52 +57,6 @@ export async function sendVerificationEmail(
   );
 }
 
-export async function sendConfirmationEmail(
-  to: string,
-  name: string
-): Promise<void> {
-  await sendEmail(
-    to,
-    "Inscrição confirmada - SAUU Unifil",
-    `
-      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-        <h1 style="color:#1a1a2e;">Inscrição Confirmada!</h1>
-        <p>Olá, <strong>${name}</strong>!</p>
-        <p>Sua inscrição na <strong>SAUU + SEC</strong> foi confirmada com sucesso.</p>
-        <p>Acesse o site para escolher as palestras que deseja assistir.</p>
-        <hr />
-        <p style="color:#888;font-size:12px;">SAUU + SEC &mdash; Unifil</p>
-      </div>
-    `
-  );
-}
-
-export async function sendPresentationConfirmationEmail(
-  to: string,
-  name: string,
-  presentations: Array<{ title: string; day: number; slot: string }>
-): Promise<void> {
-  const listHtml = presentations
-    .map((p) => `<li><strong>Dia ${p.day} - ${p.slot}</strong>: ${p.title}</li>`)
-    .join("");
-
-  await sendEmail(
-    to,
-    "Suas palestras selecionadas - SAUU Unifil",
-    `
-      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-        <h1 style="color:#1a1a2e;">Palestras Confirmadas!</h1>
-        <p>Olá, <strong>${name}</strong>!</p>
-        <p>Você está inscrito nas seguintes palestras:</p>
-        <ul>${listHtml}</ul>
-        <p>Nos vemos no evento!</p>
-        <hr />
-        <p style="color:#888;font-size:12px;">SAUU + SEC &mdash; Unifil</p>
-      </div>
-    `
-  );
-}
-
 export async function sendAdminVerificationEmail(
   to: string,
   name: string,

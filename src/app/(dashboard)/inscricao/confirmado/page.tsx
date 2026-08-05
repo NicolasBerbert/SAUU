@@ -47,9 +47,9 @@ export default async function PalestrasConfirmadasPage() {
             Palestras confirmadas
           </h1>
           <p className="mb-8 text-[14px] text-muted">
-            Suas palestras foram confirmadas com sucesso. Enviamos um e-mail com o
-            resumo da sua seleção. A partir de agora a seleção não pode mais ser
-            alterada.
+            Suas palestras foram confirmadas com sucesso. A partir de agora a
+            seleção não pode mais ser alterada. Você pode consultá-las a qualquer
+            momento em Minhas Palestras.
           </p>
           <Link href="/minhas-palestras">
             <Button variant="primary" className="px-8 py-3.5">
