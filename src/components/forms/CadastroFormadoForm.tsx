@@ -26,16 +26,10 @@ export function CadastroFormadoForm() {
   async function onSubmit(data: GraduateRegisterInput) {
     setServerError("");
 
-    // Mapeia graduationInstitution → institution para a API
-    const payload = {
-      ...data,
-      institution: data.graduationInstitution,
-    };
-
     const res = await fetch("/api/auth/cadastro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     });
 
     if (!res.ok) {
@@ -130,7 +124,7 @@ export function CadastroFormadoForm() {
         <Input
           id="password"
           type="password"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Mínimo 8 caracteres"
           error={!!errors.password}
           {...register("password")}
         />

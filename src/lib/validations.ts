@@ -50,7 +50,11 @@ export const externoRegisterSchema = baseRegisterSchema
     path: ["confirmPassword"],
   });
 
+// Formado não tem um campo "institution" próprio — a instituição é a de
+// formação (graduationInstitution). Por isso removemos institution do schema
+// (senão a validação do formulário falha num campo que não existe na tela).
 export const graduateRegisterSchema = baseRegisterSchema
+  .omit({ institution: true })
   .extend({
     type: z.literal(UserType.FORMADO),
     graduationYear: z

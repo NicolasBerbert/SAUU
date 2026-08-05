@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
         phone: parsed.phone,
         cpf: parsed.cpf,
         password: hashedPassword,
-        institution: parsed.institution,
+        // Formado usa a instituição de formação como institution.
+        institution: "graduationInstitution" in parsed ? parsed.graduationInstitution : parsed.institution,
         type: parsed.type as UserType,
         // RA only for external students
         ...("ra" in parsed && parsed.ra ? { ra: parsed.ra } : {}),
