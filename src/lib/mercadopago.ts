@@ -62,7 +62,10 @@ export async function criarPreferenciaPix(params: {
     })),
     payer: { email: params.payerEmail },
     external_reference: encodeRef(params.ref),
-    // Só PIX: exclui cartão, boleto, saldo em conta etc.
+    // Foco em PIX: exclui cartão, boleto e afins. Obs.: o Mercado Pago NÃO
+    // permite excluir "account_money" (saldo em conta MP) — tentar isso faz a
+    // API rejeitar a preferência (400). Então PIX + saldo MP ficam disponíveis;
+    // cartão/boleto ficam de fora.
     payment_methods: {
       excluded_payment_types: [
         { id: "credit_card" },
@@ -70,7 +73,6 @@ export async function criarPreferenciaPix(params: {
         { id: "ticket" },
         { id: "atm" },
         { id: "prepaid_card" },
-        { id: "account_money" },
       ],
       installments: 1,
     },
