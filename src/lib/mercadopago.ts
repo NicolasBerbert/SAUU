@@ -38,70 +38,67 @@ export function decodeRef(value: string | null | undefined): PagamentoRef | null
   }
 }
 
-interface ItemPreferencia {
-  title: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-// Cria uma preferência de checkout restrita a PIX e devolve a URL de pagamento.
-export async function criarPreferenciaPix(params: {
-  items: ItemPreferencia[];
+// Cria um pagamento PIX direto (API de Pagamentos / checkout transparente) e
+// devolve a URL do "ticket" do Mercado Pago — uma página pública com o QR e o
+// copia-e-cola, que QUALQUER pessoa paga de QUALQUER banco, sem login no MP e
+// sem usar saldo Mercado Pago.
+export async function criarPagamentoPix(params: {
+  amount: number;
+  description: string;
   payerEmail: string;
+  payerFirstName: string;
+  payerCpf?: string | null;
   ref: PagamentoRef;
   baseUrl: string;
-}): Promise<{ id: string; initPoint: string }> {
+}): Promise<{ id: number; ticketUrl: string; qrCode: string; qrCodeBase64: string }> {
   if (!MP_TOKEN) throw new Error("MERCADOPAGO_ACCESS_TOKEN não configurada");
 
+  const payer: Record<string, unknown> = {
+    email: params.payerEmail,
+    first_name: params.payerFirstName,
+  };
+  if (params.payerCpf) {
+    payer.identification = { type: "CPF", number: params.payerCpf.replace(/\D/g, "") };
+  }
+
   const body = {
-    items: params.items.map((i) => ({
-      title: i.title,
-      quantity: i.quantity,
-      unit_price: Number(i.unitPrice.toFixed(2)),
-      currency_id: "BRL",
-    })),
-    payer: { email: params.payerEmail },
+    transaction_amount: Number(params.amount.toFixed(2)),
+    description: params.description,
+    payment_method_id: "pix",
     external_reference: encodeRef(params.ref),
-    // Foco em PIX: exclui cartão, boleto e afins. Obs.: o Mercado Pago NÃO
-    // permite excluir "account_money" (saldo em conta MP) — tentar isso faz a
-    // API rejeitar a preferência (400). Então PIX + saldo MP ficam disponíveis;
-    // cartão/boleto ficam de fora.
-    payment_methods: {
-      excluded_payment_types: [
-        { id: "credit_card" },
-        { id: "debit_card" },
-        { id: "ticket" },
-        { id: "atm" },
-        { id: "prepaid_card" },
-      ],
-      installments: 1,
-    },
-    back_urls: {
-      success: `${params.baseUrl}/checkout/sucesso`,
-      failure: `${params.baseUrl}/checkout/cancelado`,
-      pending: `${params.baseUrl}/checkout/sucesso`,
-    },
-    auto_return: "approved",
     notification_url: `${params.baseUrl}/api/pagamento/mercadopago/webhook`,
-    statement_descriptor: "SAUU CLBB",
+    payer,
   };
 
-  const res = await fetch(`${MP_API}/checkout/preferences`, {
+  const res = await fetch(`${MP_API}/v1/payments`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${MP_TOKEN}`,
       "Content-Type": "application/json",
+      // Chave de idempotência única por tentativa de pagamento.
+      "X-Idempotency-Key": `${params.ref.tipo}-${params.ref.orderId ?? params.ref.userId}-${Date.now()}`,
     },
     body: JSON.stringify(body),
   });
 
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`Mercado Pago preference error ${res.status}: ${txt}`);
+    throw new Error(`Mercado Pago payment error ${res.status}: ${txt}`);
   }
 
-  const data = (await res.json()) as { id: string; init_point: string };
-  return { id: data.id, initPoint: data.init_point };
+  const data = (await res.json()) as {
+    id: number;
+    point_of_interaction?: {
+      transaction_data?: { ticket_url?: string; qr_code?: string; qr_code_base64?: string };
+    };
+  };
+  const tx = data.point_of_interaction?.transaction_data ?? {};
+  return {
+    id: data.id,
+    ticketUrl: tx.ticket_url ?? "",
+    qrCode: tx.qr_code ?? "",
+    qrCodeBase64: tx.qr_code_base64 ?? "",
+  };
 }
 
 export interface MpPayment {

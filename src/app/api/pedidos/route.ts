@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { criarPreferenciaPix } from "@/lib/mercadopago";
+import { criarPagamentoPix } from "@/lib/mercadopago";
 import { logger } from "@/lib/logger";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
@@ -88,20 +88,16 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { name: true, email: true },
+      select: { name: true, email: true, cpf: true },
     });
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
-    const pref = await criarPreferenciaPix({
-      items: items.map((item) => {
-        const product = products.find((p) => p.id === item.productId)!;
-        return {
-          title: product.name,
-          quantity: item.quantity,
-          unitPrice: Number(product.price),
-        };
-      }),
+    const pix = await criarPagamentoPix({
+      amount: total,
+      description: "Pedido loja — SAUU CLBB",
       payerEmail: user!.email,
+      payerFirstName: user!.name,
+      payerCpf: user!.cpf,
       ref: { userId: session.user.id, tipo: "pedido_loja", orderId: order.id },
       baseUrl,
     });
@@ -128,7 +124,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ orderId: order.id, checkoutUrl: pref.initPoint });
+    return NextResponse.json({ orderId: order.id, checkoutUrl: pix.ticketUrl });
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
       return NextResponse.json(

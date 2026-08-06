@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { criarPreferenciaPix } from "@/lib/mercadopago";
+import { criarPagamentoPix } from "@/lib/mercadopago";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, email: true, emailVerified: true },
+    select: { id: true, name: true, email: true, emailVerified: true, cpf: true },
   });
 
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
@@ -51,9 +51,12 @@ export async function POST(req: NextRequest) {
     });
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
-    const pref = await criarPreferenciaPix({
-      items: [{ title: "Inscrição — SAUU CLBB", quantity: 1, unitPrice: amount }],
+    const pix = await criarPagamentoPix({
+      amount,
+      description: "Inscrição — SAUU CLBB",
       payerEmail: user.email,
+      payerFirstName: user.name,
+      payerCpf: user.cpf,
       ref: { userId: session.user.id, tipo: "inscricao" },
       baseUrl,
     });
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
       metadata: { amount, ip: getClientIp(req) },
     });
 
-    return NextResponse.json({ checkoutUrl: pref.initPoint });
+    return NextResponse.json({ checkoutUrl: pix.ticketUrl });
   } catch (err) {
     logger.error("POST /api/pagamento/criar", err);
     return NextResponse.json({ error: "Erro ao iniciar pagamento" }, { status: 500 });
