@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { stripe } from "@/lib/stripe";
+import { reembolsarPagamento } from "@/lib/mercadopago";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
 import { logger } from "@/lib/logger";
@@ -36,25 +36,18 @@ export async function POST(
     );
   }
 
-  if (!registration.paymentId || registration.paymentId.startsWith("manual:")) {
+  // Pagamentos do Mercado Pago são gravados como "mp:<id>". Manuais/cortesia
+  // (manual:...) não têm cobrança para estornar.
+  if (!registration.paymentId || !registration.paymentId.startsWith("mp:")) {
     return NextResponse.json(
-      { error: "Esta inscrição não possui pagamento Stripe para reembolsar." },
+      { error: "Esta inscrição não possui pagamento do Mercado Pago para reembolsar." },
       { status: 409 }
     );
   }
 
   try {
-    // paymentId é o Stripe session ID (cs_xxx); precisamos do PaymentIntent
-    const stripeSession = await stripe.checkout.sessions.retrieve(registration.paymentId);
-    const paymentIntentId = typeof stripeSession.payment_intent === "string"
-      ? stripeSession.payment_intent
-      : null;
-
-    if (!paymentIntentId) {
-      return NextResponse.json({ error: "PaymentIntent não encontrado." }, { status: 422 });
-    }
-
-    const refund = await stripe.refunds.create({ payment_intent: paymentIntentId });
+    const mpPaymentId = registration.paymentId.replace(/^mp:/, "");
+    const refund = await reembolsarPagamento(mpPaymentId);
 
     await prisma.eventRegistration.update({
       where: { userId: id },
@@ -69,7 +62,7 @@ export async function POST(
       entityType: "EventRegistration",
       metadata: {
         refundId: refund.id,
-        paymentIntentId,
+        mpPaymentId,
         amount: Number(registration.amount),
         ip: getClientIp(req),
       },

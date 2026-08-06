@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { criarSessaoInscricao } from "@/lib/stripe";
+import { criarPreferenciaPix } from "@/lib/mercadopago";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
@@ -50,10 +50,12 @@ export async function POST(req: NextRequest) {
       create: { userId: session.user.id, amount, paymentStatus: "PENDING" },
     });
 
-    const stripeSession = await criarSessaoInscricao({
-      userId: session.user.id,
-      userEmail: user.email,
-      amount,
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
+    const pref = await criarPreferenciaPix({
+      items: [{ title: "Inscrição — SAUU CLBB", quantity: 1, unitPrice: amount }],
+      payerEmail: user.email,
+      ref: { userId: session.user.id, tipo: "inscricao" },
+      baseUrl,
     });
 
     await audit({
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
       metadata: { amount, ip: getClientIp(req) },
     });
 
-    return NextResponse.json({ checkoutUrl: stripeSession.url });
+    return NextResponse.json({ checkoutUrl: pref.initPoint });
   } catch (err) {
     logger.error("POST /api/pagamento/criar", err);
     return NextResponse.json({ error: "Erro ao iniciar pagamento" }, { status: 500 });

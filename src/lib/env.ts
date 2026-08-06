@@ -8,8 +8,7 @@ const required = [
 ] as const;
 
 const requiredInProduction = [
-  "STRIPE_SECRET_KEY",
-  "STRIPE_WEBHOOK_SECRET",
+  "MERCADOPAGO_ACCESS_TOKEN",
   "RESEND_API_KEY",
   "EMAIL_FROM",
   "EVENT_REGISTRATION_PRICE",

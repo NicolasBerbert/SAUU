@@ -20,26 +20,23 @@ async function checkEmail(): Promise<{ ok: boolean; error?: string }> {
   return { ok: apiKey.startsWith("re_") };
 }
 
-async function checkStripe(): Promise<{ ok: boolean; mode?: string; error?: string }> {
-  try {
-    const key = process.env.STRIPE_SECRET_KEY ?? "";
-    if (!key) return { ok: false, error: "STRIPE_SECRET_KEY não configurada" };
-    const mode = key.startsWith("sk_live_") ? "live" : "test";
-    return { ok: key.length > 20, mode };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  }
+async function checkMercadoPago(): Promise<{ ok: boolean; mode?: string; error?: string }> {
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN ?? "";
+  if (!token) return { ok: false, error: "MERCADOPAGO_ACCESS_TOKEN não configurada" };
+  // Tokens de produção começam com APP_USR-; de teste com TEST-.
+  const mode = token.startsWith("TEST-") ? "test" : "live";
+  return { ok: token.length > 20, mode };
 }
 
 // GET /api/health — verificação de saúde detalhada
 export async function GET() {
-  const [db, email, stripe] = await Promise.all([
+  const [db, email, pagamento] = await Promise.all([
     checkDb(),
     checkEmail(),
-    checkStripe(),
+    checkMercadoPago(),
   ]);
 
-  const allOk = db.ok && email.ok && stripe.ok;
+  const allOk = db.ok && email.ok && pagamento.ok;
 
   return NextResponse.json({
     status: allOk ? "ok" : "degraded",
@@ -47,7 +44,7 @@ export async function GET() {
     checks: {
       db: { status: db.ok ? "ok" : "error", latencyMs: db.latencyMs },
       email: { status: email.ok ? "ok" : "error", ...(email.error ? { error: email.error } : {}) },
-      stripe: { status: stripe.ok ? "ok" : "error", mode: stripe.mode ?? "unknown", ...(stripe.error ? { error: stripe.error } : {}) },
+      mercadopago: { status: pagamento.ok ? "ok" : "error", mode: pagamento.mode ?? "unknown", ...(pagamento.error ? { error: pagamento.error } : {}) },
     },
   }, { status: allOk ? 200 : 503 });
 }

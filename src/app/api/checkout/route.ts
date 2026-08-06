@@ -3,8 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { criarPreferenciaPix } from "@/lib/mercadopago";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
@@ -135,45 +134,29 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Monta line_items do Stripe com todos os itens do carrinho
-    const lineItems: Stripe.Checkout.SessionCreateParams["line_items"] = [];
+    // Monta os itens do carrinho para a preferência do Mercado Pago
+    const mpItems: Array<{ title: string; quantity: number; unitPrice: number }> = [];
 
     if (incluirInscricao) {
-      lineItems.push({
-        price_data: {
-          currency: "brl",
-          product_data: { name: "Inscrição — SAUU Unifil" },
-          unit_amount: Math.round(registrationAmount * 100),
-        },
-        quantity: 1,
-      });
+      mpItems.push({ title: "Inscrição — SAUU CLBB", quantity: 1, unitPrice: registrationAmount });
     }
 
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId)!;
-      lineItems.push({
-        price_data: {
-          currency: "brl",
-          product_data: { name: product.name },
-          unit_amount: Math.round(Number(product.price) * 100),
-        },
-        quantity: item.quantity,
-      });
+      mpItems.push({ title: product.name, quantity: item.quantity, unitPrice: Number(product.price) });
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
-    const stripeSession = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer_email: user.email,
-      line_items: lineItems,
-      success_url: `${baseUrl}/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/checkout/cancelado`,
-      metadata: {
+    const pref = await criarPreferenciaPix({
+      items: mpItems,
+      payerEmail: user.email,
+      ref: {
         userId: session.user.id,
         tipo: "combinado",
-        incluirInscricao: String(incluirInscricao),
-        orderId: orderId ?? "",
+        orderId: orderId ?? null,
+        incluirInscricao,
       },
+      baseUrl,
     });
 
     await audit({
@@ -200,7 +183,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ checkoutUrl: stripeSession.url });
+    return NextResponse.json({ checkoutUrl: pref.initPoint });
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
       return NextResponse.json(

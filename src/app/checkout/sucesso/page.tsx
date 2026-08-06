@@ -1,63 +1,26 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-import { stripe } from "@/lib/stripe";
+import { processarPagamentoMp } from "@/lib/mercadopago";
 import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ session_id?: string }>;
-}
-
-// Confirmação no retorno do pagamento. O webhook do Stripe continua sendo a
-// fonte principal de verdade (e envia o e-mail de confirmação), mas aqui
-// garantimos a aprovação de forma idempotente caso o webhook atrase ou não
-// esteja configurado — assim o status persiste no banco, não só nesta tela.
-async function confirmarPagamento(sessionId: string | undefined) {
-  if (!sessionId) return;
-
-  const auth = await getServerSession(authOptions);
-  if (!auth?.user?.id) return;
-
-  try {
-    const stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
-    const meta = (stripeSession.metadata ?? {}) as {
-      userId?: string;
-      tipo?: string;
-      incluirInscricao?: string;
-      orderId?: string;
-    };
-
-    // Só aprova se o pagamento foi realmente coletado e pertence a este usuário.
-    if (stripeSession.payment_status !== "paid" || meta.userId !== auth.user.id) {
-      return;
-    }
-
-    const aprovaInscricao = meta.tipo === "inscricao" || meta.incluirInscricao === "true";
-
-    if (aprovaInscricao) {
-      await prisma.eventRegistration.updateMany({
-        where: { userId: auth.user.id, paymentStatus: { not: "APPROVED" } },
-        data: { paymentStatus: "APPROVED", paymentId: stripeSession.id },
-      });
-    }
-
-    if (meta.orderId) {
-      await prisma.order.updateMany({
-        where: { id: meta.orderId, status: { not: "APPROVED" } },
-        data: { status: "APPROVED", paymentId: stripeSession.id },
-      });
-    }
-  } catch {
-    // Em caso de falha aqui, o webhook do Stripe ainda confirma o pagamento.
-  }
+  searchParams: Promise<{ payment_id?: string; collection_id?: string; status?: string }>;
 }
 
 export default async function CheckoutSucessoPage({ searchParams }: Props) {
-  const { session_id } = await searchParams;
-  await confirmarPagamento(session_id);
+  const params = await searchParams;
+  // O Mercado Pago retorna com payment_id/collection_id. O webhook é a fonte
+  // principal, mas aqui confirmamos também (idempotente) — a checagem real do
+  // status é feita reconsultando o pagamento na API do MP, não confiando na URL.
+  const paymentId = params.payment_id ?? params.collection_id;
+  if (paymentId) {
+    try {
+      await processarPagamentoMp(paymentId);
+    } catch {
+      // Se falhar aqui, o webhook do Mercado Pago ainda confirma o pagamento.
+    }
+  }
 
   return (
     <main
