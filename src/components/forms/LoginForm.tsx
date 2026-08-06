@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
@@ -89,6 +90,13 @@ export function LoginForm() {
       <Button type="submit" loading={isSubmitting} className="mt-2 py-4 text-xs tracking-widest uppercase">
         Entrar
       </Button>
+
+      <Link
+        href="/recuperar-senha"
+        className="text-center text-[12px] text-muted underline-offset-2 transition-colors hover:text-accent hover:underline"
+      >
+        Esqueci minha senha
+      </Link>
     </form>
   );
 }

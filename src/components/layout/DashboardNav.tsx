@@ -62,6 +62,15 @@ export function DashboardNav({ userName }: { userName: string }) {
             <span className="hidden max-w-[130px] truncate text-[12px] text-muted sm:block">
               {userName}
             </span>
+            <Link
+              href="/perfil/alterar-senha"
+              className={cn(
+                "hidden text-[12px] uppercase tracking-[0.18em] transition-colors sm:block",
+                pathname === "/perfil/alterar-senha" ? "text-accent" : "text-muted hover:text-primary"
+              )}
+            >
+              Trocar senha
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
               className="text-[12px] uppercase tracking-[0.18em] text-muted transition-colors hover:text-accent"
@@ -73,7 +82,7 @@ export function DashboardNav({ userName }: { userName: string }) {
 
         {/* Mobile nav */}
         <div className="flex gap-4 overflow-x-auto pb-3 sm:hidden">
-          {links.map((link) => (
+          {[...links, { href: "/perfil/alterar-senha", label: "Trocar senha" }].map((link) => (
             <Link
               key={link.href}
               href={link.href}

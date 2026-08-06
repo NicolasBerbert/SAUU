@@ -72,6 +72,9 @@ export default async function AdminPedidosPage() {
                 {order.items.map((item) => (
                   <p key={item.id} className="text-xs text-muted truncate">
                     {item.quantity}× {item.product.name}
+                    {item.size && (
+                      <span className="ml-1 uppercase text-primary">· Tam {item.size}</span>
+                    )}
                   </p>
                 ))}
               </div>

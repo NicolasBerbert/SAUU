@@ -57,6 +57,35 @@ export async function sendVerificationEmail(
   );
 }
 
+export async function sendPasswordResetEmail(
+  to: string,
+  name: string,
+  token: string
+): Promise<void> {
+  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const link = `${baseUrl}/redefinir-senha?token=${token}`;
+
+  await sendEmail(
+    to,
+    "Redefinição de senha - SAUU Unifil",
+    `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+        <h1 style="color:#1a1a2e;">Redefinir senha</h1>
+        <p>Olá, <strong>${name}</strong>!</p>
+        <p>Recebemos um pedido para redefinir a senha da sua conta na SAUU. Clique no botão abaixo para escolher uma nova senha.</p>
+        <p style="margin:32px 0;">
+          <a href="${link}" style="background:#c8a96e;color:#0a0a14;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:2px;">
+            Redefinir senha
+          </a>
+        </p>
+        <p style="color:#888;font-size:12px;">Este link expira em 1 hora. Se você não pediu a redefinição, ignore este e-mail — sua senha continua a mesma.</p>
+        <hr />
+        <p style="color:#888;font-size:12px;">SAUU + SEC &mdash; Unifil</p>
+      </div>
+    `
+  );
+}
+
 export async function sendAdminVerificationEmail(
   to: string,
   name: string,

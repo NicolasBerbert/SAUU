@@ -30,6 +30,7 @@ export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) 
       items: cart.items.map((i) => ({
         productId: i.productId,
         quantity: i.quantity,
+        size: i.size,
       })),
     };
 

@@ -17,6 +17,7 @@ const checkoutSchema = z
         z.object({
           productId: z.string().cuid(),
           quantity: z.number().int().positive().max(10),
+          size: z.string().max(20).optional(),
         })
       )
       .max(20),
@@ -76,11 +77,12 @@ export async function POST(req: NextRequest) {
 
   let products: Awaited<ReturnType<typeof prisma.product.findMany>> = [];
   if (items.length > 0) {
-    const productIds = items.map((i) => i.productId);
+    // IDs únicos: o mesmo produto pode aparecer em tamanhos diferentes.
+    const productIds = [...new Set(items.map((i) => i.productId))];
     products = await prisma.product.findMany({
       where: { id: { in: productIds }, active: true },
     });
-    if (products.length !== items.length) {
+    if (products.length !== productIds.length) {
       return NextResponse.json(
         { error: "Um ou mais produtos não encontrados ou indisponíveis." },
         { status: 404 }
@@ -126,6 +128,7 @@ export async function POST(req: NextRequest) {
                 productId: item.productId,
                 quantity: item.quantity,
                 price: products.find((p) => p.id === item.productId)!.price,
+                size: item.size,
               })),
             },
           },

@@ -60,6 +60,7 @@ model User {
   orders               Order[]
   certificate          Certificate?
   emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens  PasswordResetToken[]
   auditLogs            AuditLog[]
 
   @@index([email])
@@ -71,6 +72,22 @@ model User {
 // ─────────────────────────────────────────────
 
 model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique // hash SHA-256 do token enviado por e-mail
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// RECUPERAÇÃO DE SENHA
+// ─────────────────────────────────────────────
+
+model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique // hash SHA-256 do token enviado por e-mail
@@ -244,6 +261,7 @@ model OrderItem {
   productId String
   quantity  Int
   price     Decimal @db.Decimal(10, 2)
+  size      String? // tamanho escolhido (ex: "M"), quando o produto tem tamanhos
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
