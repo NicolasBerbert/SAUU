@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       metadata: { amount, ip: getClientIp(req) },
     });
 
-    return NextResponse.json({ checkoutUrl: pix.ticketUrl });
+    return NextResponse.json({ checkoutUrl: `/checkout/pix?pid=${pix.id}` });
   } catch (err) {
     logger.error("POST /api/pagamento/criar", err);
     return NextResponse.json({ error: "Erro ao iniciar pagamento" }, { status: 500 });

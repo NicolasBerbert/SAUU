@@ -106,6 +106,9 @@ export interface MpPayment {
   status: string; // approved | pending | in_process | rejected | cancelled | refunded
   external_reference: string | null;
   transaction_amount: number;
+  point_of_interaction?: {
+    transaction_data?: { qr_code?: string; qr_code_base64?: string; ticket_url?: string };
+  };
 }
 
 // Emite reembolso total de um pagamento (paymentId é o id numérico do MP).

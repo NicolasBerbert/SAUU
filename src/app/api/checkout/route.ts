@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ checkoutUrl: pix.ticketUrl });
+    return NextResponse.json({ checkoutUrl: `/checkout/pix?pid=${pix.id}` });
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
       return NextResponse.json(
