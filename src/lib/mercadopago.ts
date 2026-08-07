@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { logger } from "@/lib/logger";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 // ─────────────────────────────────────────────────────────────
 // Integração Mercado Pago — pagamentos via PIX (Checkout Pro).
@@ -188,6 +189,41 @@ export async function processarPagamentoMp(paymentId: string): Promise<{ approve
         entityType: "Order",
         metadata: { paymentId: pagamento.id, via: "mercadopago" },
       });
+
+      // E-mail de confirmação do pedido da loja. Só é enviado nesta transição
+      // (upd.count > 0), então notificação duplicada do MP não reenvia.
+      const order = await prisma.order.findUnique({
+        where: { id: ref.orderId },
+        select: {
+          total: true,
+          user: { select: { name: true, email: true } },
+          items: {
+            select: {
+              quantity: true,
+              size: true,
+              price: true,
+              product: { select: { name: true } },
+            },
+          },
+        },
+      });
+      if (order) {
+        try {
+          await sendOrderConfirmationEmail(
+            order.user.email,
+            order.user.name,
+            order.items.map((it) => ({
+              name: it.product.name,
+              quantity: it.quantity,
+              size: it.size,
+              price: Number(it.price),
+            })),
+            Number(order.total)
+          );
+        } catch (err) {
+          logger.error("sendOrderConfirmationEmail", err);
+        }
+      }
     }
   }
 

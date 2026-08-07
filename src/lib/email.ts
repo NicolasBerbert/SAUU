@@ -57,6 +57,45 @@ export async function sendVerificationEmail(
   );
 }
 
+export async function sendOrderConfirmationEmail(
+  to: string,
+  name: string,
+  items: Array<{ name: string; quantity: number; size?: string | null; price: number }>,
+  total: number
+): Promise<void> {
+  const rows = items
+    .map((i) => {
+      const tam = i.size ? ` (Tam ${i.size})` : "";
+      return `<tr>
+        <td style="padding:6px 0;color:#333;">${i.quantity}× ${i.name}${tam}</td>
+        <td style="padding:6px 0;text-align:right;color:#333;">R$ ${(i.price * i.quantity).toFixed(2)}</td>
+      </tr>`;
+    })
+    .join("");
+
+  await sendEmail(
+    to,
+    "Pedido confirmado - SAUU Unifil",
+    `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+        <h1 style="color:#1a1a2e;">Pedido confirmado!</h1>
+        <p>Olá, <strong>${name}</strong>!</p>
+        <p>Recebemos o pagamento do seu pedido na loja da SAUU. Segue o resumo:</p>
+        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+          ${rows}
+          <tr>
+            <td style="padding:10px 0;border-top:1px solid #ddd;font-weight:bold;">Total</td>
+            <td style="padding:10px 0;border-top:1px solid #ddd;text-align:right;font-weight:bold;">R$ ${total.toFixed(2)}</td>
+          </tr>
+        </table>
+        <p>A retirada dos produtos será combinada durante o evento.</p>
+        <hr />
+        <p style="color:#888;font-size:12px;">SAUU + SEC &mdash; Unifil</p>
+      </div>
+    `
+  );
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   name: string,
