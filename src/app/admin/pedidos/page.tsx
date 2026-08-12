@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
+import { ExportButton } from "@/components/admin/ExportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -34,13 +35,14 @@ export default async function AdminPedidosPage() {
         <div className="h-px w-8 bg-accent" />
         <span className="text-xs uppercase tracking-widest text-accent">Admin</span>
       </div>
-      <div className="flex items-end justify-between mb-10">
+      <div className="flex items-end justify-between mb-10 gap-4">
         <div>
           <h1 className="text-3xl font-light text-primary mb-2">Pedidos</h1>
           <p className="text-sm text-muted">
             {orders.length} pedido{orders.length !== 1 ? "s" : ""} · {formatCurrency(totalRevenue)} aprovados
           </p>
         </div>
+        <ExportButton href="/api/admin/exportar/pedidos" label="Exportar planilha" />
       </div>
 
       <div className="border border-border">

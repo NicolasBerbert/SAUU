@@ -214,6 +214,13 @@ export default async function RelatoriosPage() {
             </div>
             <ExportButton href="/api/admin/exportar/horas" label="Baixar .xlsx" />
           </div>
+          <div className="px-4 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-primary font-medium">Pedidos da loja</p>
+              <p className="text-[10px] text-muted">Uma linha por item: comprador, contato, produto, tamanho, quantidade, valor e status — formato Excel</p>
+            </div>
+            <ExportButton href="/api/admin/exportar/pedidos" label="Baixar .xlsx" />
+          </div>
         </div>
       </section>
 
@@ -236,12 +243,11 @@ export default async function RelatoriosPage() {
             <ExportButton href="/api/health" label="Ver status" />
           </div>
           <div className="px-4 py-3">
-            <p className="text-xs text-primary font-medium mb-2">Stripe — teste de pagamento</p>
+            <p className="text-xs text-primary font-medium mb-2">Pagamentos — Mercado Pago (PIX)</p>
             <div className="text-[10px] text-muted space-y-1">
-              <p>Cartão aprovado: <code className="font-mono">4242 4242 4242 4242</code></p>
-              <p>Cartão recusado: <code className="font-mono">4000 0000 0000 0002</code></p>
-              <p>Validade: qualquer data futura (ex: 12/34) · CVV: qualquer 3 dígitos</p>
-              <p className="mt-2">Para testar webhooks localmente: <code className="font-mono">stripe listen --forward-to localhost:3000/api/pagamento/webhook</code></p>
+              <p>Cobrança via PIX (QR + copia e cola). A confirmação é automática pelo webhook.</p>
+              <p>Webhook: <code className="font-mono">/api/pagamento/mercadopago/webhook</code></p>
+              <p>Para testar, faça um PIX real de valor baixo e confirme o status 200 no painel do Mercado Pago.</p>
             </div>
           </div>
         </div>
