@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,13 @@ interface Palestra {
   inscritos: Inscrito[];
 }
 
+interface UsuarioBusca {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+}
+
 export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -36,6 +43,10 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
     });
   }
 
+  function refresh() {
+    startTransition(() => router.refresh());
+  }
+
   async function togglePresenca(slotId: string, presente: boolean) {
     setLoadingId(slotId);
     await fetch("/api/admin/presenca", {
@@ -44,7 +55,19 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
       body: JSON.stringify({ slotId, presente }),
     });
     setLoadingId(null);
-    startTransition(() => router.refresh());
+    refresh();
+  }
+
+  async function removerInscrito(slotId: string) {
+    if (!confirm("Remover esta pessoa da palestra? Isso também remove das horas e do painel dela.")) return;
+    setLoadingId(slotId);
+    await fetch("/api/admin/presenca", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slotId }),
+    });
+    setLoadingId(null);
+    refresh();
   }
 
   if (palestras.length === 0) {
@@ -129,6 +152,9 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
                     {/* Collapsible user list */}
                     {isOpen && (
                       <div className="border-t border-border">
+                        {/* Adicionar pessoa manualmente */}
+                        <AdicionarPessoa presentationId={palestra.id} onAdded={refresh} />
+
                         {total === 0 ? (
                           <div className="px-6 py-6 text-center">
                             <p className="text-xs text-muted">Nenhum inscrito nesta palestra.</p>
@@ -150,18 +176,28 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
                                     <p className="text-sm text-primary truncate">{inscrito.name}</p>
                                     <p className="text-xs text-muted truncate">{inscrito.email}</p>
                                   </div>
-                                  <button
-                                    onClick={() => togglePresenca(inscrito.slotId, !presente)}
-                                    disabled={carregando || isPending}
-                                    className={cn(
-                                      "shrink-0 text-[10px] uppercase tracking-widest px-4 py-2 border transition-colors disabled:opacity-40",
-                                      presente
-                                        ? "border-success text-success hover:border-danger hover:text-danger"
-                                        : "border-border text-muted hover:border-accent hover:text-accent"
-                                    )}
-                                  >
-                                    {carregando ? "..." : presente ? "Confirmado" : "Confirmar"}
-                                  </button>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <button
+                                      onClick={() => togglePresenca(inscrito.slotId, !presente)}
+                                      disabled={carregando || isPending}
+                                      className={cn(
+                                        "text-[10px] uppercase tracking-widest px-4 py-2 border transition-colors disabled:opacity-40",
+                                        presente
+                                          ? "border-success text-success hover:border-danger hover:text-danger"
+                                          : "border-border text-muted hover:border-accent hover:text-accent"
+                                      )}
+                                    >
+                                      {carregando ? "..." : presente ? "Confirmado" : "Confirmar"}
+                                    </button>
+                                    <button
+                                      onClick={() => removerInscrito(inscrito.slotId)}
+                                      disabled={carregando || isPending}
+                                      title="Remover da palestra"
+                                      className="text-[10px] uppercase tracking-widest px-3 py-2 border border-border text-muted transition-colors hover:border-danger hover:text-danger disabled:opacity-40"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
                                 </div>
                               );
                             })}
@@ -176,6 +212,141 @@ export function PresencaPanel({ palestras }: { palestras: Palestra[] }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function AdicionarPessoa({
+  presentationId,
+  onAdded,
+}: {
+  presentationId: string;
+  onAdded: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<UsuarioBusca[]>([]);
+  const [marcar, setMarcar] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    if (q.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/usuarios/buscar?q=${encodeURIComponent(q)}`);
+        if (res.ok) setResults(await res.json());
+      } catch {
+        /* ignora */
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [q, open]);
+
+  async function adicionar(userId: string) {
+    setLoading(true);
+    setMsg("");
+    try {
+      const res = await fetch("/api/admin/presenca", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, presentationId, marcarPresenca: marcar }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg(body.error ?? "Erro ao adicionar.");
+        setLoading(false);
+        return;
+      }
+      setQ("");
+      setResults([]);
+      setMsg("Adicionado!");
+      setLoading(false);
+      onAdded();
+    } catch {
+      setMsg("Erro de conexão.");
+      setLoading(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="px-6 py-3 border-b border-border bg-surface">
+        <button
+          onClick={() => setOpen(true)}
+          className="text-[10px] uppercase tracking-widest text-accent hover:text-primary transition-colors"
+        >
+          + Adicionar pessoa manualmente
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-6 py-4 border-b border-border bg-surface">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] uppercase tracking-widest text-muted">Adicionar pessoa</p>
+        <button
+          onClick={() => {
+            setOpen(false);
+            setQ("");
+            setResults([]);
+            setMsg("");
+          }}
+          className="text-[10px] uppercase tracking-widest text-muted hover:text-danger transition-colors"
+        >
+          Fechar
+        </button>
+      </div>
+
+      <input
+        autoFocus
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Buscar por nome ou e-mail…"
+        className="w-full bg-background border border-border px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent"
+      />
+
+      <label className="mt-2 flex items-center gap-2 text-[11px] text-muted cursor-pointer">
+        <input
+          type="checkbox"
+          checked={marcar}
+          onChange={(e) => setMarcar(e.target.checked)}
+          className="accent-accent"
+        />
+        Marcar presença ao adicionar (conta horas na hora)
+      </label>
+
+      {msg && <p className="mt-2 text-[11px] text-accent">{msg}</p>}
+
+      {results.length > 0 && (
+        <div className="mt-2 border border-border divide-y divide-border max-h-60 overflow-y-auto">
+          {results.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => adicionar(u.id)}
+              disabled={loading}
+              className="w-full text-left px-3 py-2 flex items-center justify-between gap-3 hover:bg-background transition-colors disabled:opacity-40"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm text-primary truncate">{u.name}</span>
+                <span className="block text-[11px] text-muted truncate">{u.email}</span>
+              </span>
+              <span className="shrink-0 text-[10px] uppercase tracking-widest text-accent">
+                Adicionar
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {q.trim().length >= 2 && results.length === 0 && (
+        <p className="mt-2 text-[11px] text-muted">Nenhum usuário encontrado.</p>
+      )}
     </div>
   );
 }
