@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { slotLabel, formatCurrency } from "@/lib/utils";
+import { CheckoutButton } from "@/components/checkout/CheckoutButton";
+import { slotLabel } from "@/lib/utils";
 
 export default async function MinhasPalestrasPage() {
   const session = await getServerSession(authOptions);
@@ -111,17 +112,10 @@ export default async function MinhasPalestrasPage() {
 
         <div>
           {!registration && (
-            <Link href="/checkout">
-              <Button variant="primary" className="whitespace-nowrap">
-                Inscrever-se —{" "}
-                {formatCurrency(Number(process.env.EVENT_REGISTRATION_PRICE ?? 50))}
-              </Button>
-            </Link>
+            <CheckoutButton price={Number(process.env.EVENT_REGISTRATION_PRICE ?? 50)} />
           )}
           {isPending && (
-            <Link href="/checkout">
-              <Button variant="secondary">Tentar novamente</Button>
-            </Link>
+            <CheckoutButton price={Number(process.env.EVENT_REGISTRATION_PRICE ?? 50)} />
           )}
           {isPaid && (
             <Link href="/inscricao">
