@@ -1,24 +1,22 @@
 import Link from "next/link";
-import { processarPagamentoMp } from "@/lib/mercadopago";
+import { aprovarPedidoStripe } from "@/lib/stripe";
 import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ payment_id?: string; collection_id?: string; status?: string }>;
+  searchParams: Promise<{ session_id?: string }>;
 }
 
+// Retorno do Stripe (pedido da loja). O webhook é a fonte principal; aqui
+// confirmamos também (idempotente), reconsultando a sessão na API do Stripe.
 export default async function CheckoutSucessoPage({ searchParams }: Props) {
-  const params = await searchParams;
-  // O Mercado Pago retorna com payment_id/collection_id. O webhook é a fonte
-  // principal, mas aqui confirmamos também (idempotente) — a checagem real do
-  // status é feita reconsultando o pagamento na API do MP, não confiando na URL.
-  const paymentId = params.payment_id ?? params.collection_id;
-  if (paymentId) {
+  const { session_id } = await searchParams;
+  if (session_id) {
     try {
-      await processarPagamentoMp(paymentId);
+      await aprovarPedidoStripe(session_id);
     } catch {
-      // Se falhar aqui, o webhook do Mercado Pago ainda confirma o pagamento.
+      // Se falhar aqui, o webhook do Stripe ainda confirma o pedido.
     }
   }
 
@@ -56,15 +54,15 @@ export default async function CheckoutSucessoPage({ searchParams }: Props) {
             className="mb-3 font-display leading-none text-primary"
             style={{ fontSize: "36px" }}
           >
-            Inscrição confirmada
+            Pedido confirmado
           </h1>
           <p className="mb-8 text-[14px] text-muted">
-            Sua inscrição foi confirmada. Agora você pode selecionar as
-            palestras que deseja assistir.
+            Recebemos o pagamento do seu pedido. Enviamos um e-mail com o resumo,
+            e a retirada dos produtos será combinada durante o evento.
           </p>
-          <Link href="/inscricao">
+          <Link href="/loja">
             <Button variant="primary" className="px-8 py-3.5">
-              Selecionar palestras <span>→</span>
+              Voltar à loja <span>→</span>
             </Button>
           </Link>
         </div>

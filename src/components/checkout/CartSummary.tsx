@@ -4,60 +4,17 @@ import { useCart } from "@/contexts/CartContext";
 import { formatCurrency } from "@/lib/utils";
 
 interface CartSummaryProps {
-  precoInscricao: number;
-  inscricaoJaAprovada: boolean;
   userName: string;
   userEmail: string;
 }
 
-export function CartSummary({
-  precoInscricao,
-  inscricaoJaAprovada,
-  userName,
-  userEmail,
-}: CartSummaryProps) {
-  const { cart, removeFromCart, setQuantity, toggleInscricao, isEmpty, total } = useCart();
+export function CartSummary({ userName, userEmail }: CartSummaryProps) {
+  const { cart, removeFromCart, setQuantity, isEmpty, subtotal } = useCart();
 
-  const totalFinal = total(precoInscricao);
+  const totalFinal = subtotal;
 
   return (
     <div className="space-y-6">
-      {/* Inscrição no evento */}
-      {!inscricaoJaAprovada && (
-        <div className="border border-border">
-          <div className="px-6 py-4 border-b border-border bg-surface">
-            <p className="text-xs uppercase tracking-widest text-muted">Inscrição no Evento</p>
-          </div>
-          <div className="px-6 py-5">
-            <label className="flex items-center justify-between gap-4 cursor-pointer">
-              <div>
-                <p className="text-sm text-primary mb-0.5">SAUU + SEC</p>
-                <p className="text-xs text-muted">Acesso completo: 4 dias de palestras</p>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="text-sm text-accent">{formatCurrency(precoInscricao)}</span>
-                <input
-                  type="checkbox"
-                  checked={cart.incluirInscricao}
-                  onChange={(e) => toggleInscricao(e.target.checked)}
-                  className="w-4 h-4 accent-[var(--color-accent)] cursor-pointer"
-                />
-              </div>
-            </label>
-          </div>
-        </div>
-      )}
-
-      {inscricaoJaAprovada && (
-        <div className="border border-border px-6 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-primary mb-0.5">Inscrição no Evento</p>
-            <p className="text-xs text-muted">Já confirmada</p>
-          </div>
-          <span className="text-xs uppercase tracking-widest text-success">Pago</span>
-        </div>
-      )}
-
       {/* Itens da loja */}
       {cart.items.length > 0 && (
         <div className="border border-border">
@@ -111,12 +68,10 @@ export function CartSummary({
       )}
 
       {/* Carrinho vazio */}
-      {isEmpty && !inscricaoJaAprovada && (
+      {isEmpty && (
         <div className="border border-border py-10 text-center">
           <p className="text-sm text-muted">Seu carrinho está vazio.</p>
-          <p className="text-xs text-muted/60 mt-1">
-            Adicione produtos na loja ou marque a inscrição no evento acima.
-          </p>
+          <p className="text-xs text-muted/60 mt-1">Adicione produtos na loja.</p>
         </div>
       )}
 

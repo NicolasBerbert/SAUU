@@ -28,15 +28,23 @@ async function checkMercadoPago(): Promise<{ ok: boolean; mode?: string; error?:
   return { ok: token.length > 20, mode };
 }
 
+async function checkStripe(): Promise<{ ok: boolean; mode?: string; error?: string }> {
+  const key = process.env.STRIPE_SECRET_KEY ?? "";
+  if (!key) return { ok: false, error: "STRIPE_SECRET_KEY não configurada" };
+  const mode = key.startsWith("sk_live_") ? "live" : "test";
+  return { ok: key.length > 20, mode };
+}
+
 // GET /api/health — verificação de saúde detalhada
 export async function GET() {
-  const [db, email, pagamento] = await Promise.all([
+  const [db, email, pagamento, stripe] = await Promise.all([
     checkDb(),
     checkEmail(),
     checkMercadoPago(),
+    checkStripe(),
   ]);
 
-  const allOk = db.ok && email.ok && pagamento.ok;
+  const allOk = db.ok && email.ok && pagamento.ok && stripe.ok;
 
   return NextResponse.json({
     status: allOk ? "ok" : "degraded",
@@ -45,6 +53,7 @@ export async function GET() {
       db: { status: db.ok ? "ok" : "error", latencyMs: db.latencyMs },
       email: { status: email.ok ? "ok" : "error", ...(email.error ? { error: email.error } : {}) },
       mercadopago: { status: pagamento.ok ? "ok" : "error", mode: pagamento.mode ?? "unknown", ...(pagamento.error ? { error: pagamento.error } : {}) },
+      stripe: { status: stripe.ok ? "ok" : "error", mode: stripe.mode ?? "unknown", ...(stripe.error ? { error: stripe.error } : {}) },
     },
   }, { status: allOk ? 200 : 503 });
 }

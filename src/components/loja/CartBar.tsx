@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { formatCurrency } from "@/lib/utils";
 
-export function CartBar({ precoInscricao }: { precoInscricao: number }) {
-  const { isEmpty, itemCount, total, cart } = useCart();
+export function CartBar() {
+  const { isEmpty, itemCount, subtotal } = useCart();
 
   if (isEmpty) return null;
 
-  const totalFinal = total(precoInscricao);
+  const totalFinal = subtotal;
 
   return (
     <div
@@ -24,8 +24,7 @@ export function CartBar({ precoInscricao }: { precoInscricao: number }) {
         className="text-[12px] uppercase tracking-[0.24em]"
         style={{ opacity: 0.7 }}
       >
-        {itemCount} {itemCount === 1 ? "item" : "itens"}{" "}
-        {cart.incluirInscricao && " + inscrição"} · retirada no evento
+        {itemCount} {itemCount === 1 ? "item" : "itens"} · retirada no evento
       </span>
       <div className="flex items-center gap-4">
         <span

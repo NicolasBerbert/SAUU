@@ -1,24 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/utils";
 
-const IS_DEV = process.env.NODE_ENV === "development";
-
-interface CartCheckoutButtonProps {
-  precoInscricao: number;
-}
-
-export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) {
-  const router = useRouter();
-  const { cart, isEmpty, total, limparCarrinho } = useCart();
+export function CartCheckoutButton() {
+  const { cart, isEmpty, subtotal, limparCarrinho } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const totalFinal = total(precoInscricao);
 
   async function handleCheckout() {
     if (isEmpty) return;
@@ -26,7 +16,6 @@ export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) 
     setError(null);
 
     const payload = {
-      incluirInscricao: cart.incluirInscricao,
       items: cart.items.map((i) => ({
         productId: i.productId,
         quantity: i.quantity,
@@ -35,10 +24,7 @@ export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) 
     };
 
     try {
-      // Em desenvolvimento, usa o simulador — sem chamada ao Mercado Pago
-      const rota = IS_DEV ? "/api/checkout/simular" : "/api/checkout";
-
-      const res = await fetch(rota, {
+      const res = await fetch("/api/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -53,14 +39,8 @@ export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) 
       }
 
       limparCarrinho();
-
-      if (IS_DEV) {
-        // Simulador aprova direto — vai para sucesso
-        router.push("/checkout/sucesso");
-      } else {
-        // Produção — redireciona para o Mercado Pago
-        window.location.href = data.checkoutUrl;
-      }
+      // Redireciona para o checkout do Stripe (cartão)
+      window.location.href = data.checkoutUrl;
     } catch {
       setError("Erro de conexão. Tente novamente.");
       setLoading(false);
@@ -77,13 +57,6 @@ export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) 
 
   return (
     <div>
-      {IS_DEV && (
-        <div className="border border-accent/20 bg-accent/5 px-4 py-3 mb-4">
-          <p className="text-xs text-accent/80">
-            Ambiente de testes — nenhuma cobrança real será realizada.
-          </p>
-        </div>
-      )}
       {error && <p className="text-xs text-danger mb-4">{error}</p>}
       <Button
         variant="primary"
@@ -93,8 +66,11 @@ export function CartCheckoutButton({ precoInscricao }: CartCheckoutButtonProps) 
       >
         {loading
           ? "Processando..."
-          : `Confirmar e Pagar — ${formatCurrency(totalFinal)}`}
+          : `Pagar com cartão — ${formatCurrency(subtotal)}`}
       </Button>
+      <p className="mt-3 text-center text-[11px] text-muted">
+        Pagamento por cartão via Stripe. A inscrição no evento é paga à parte, via PIX.
+      </p>
     </div>
   );
 }

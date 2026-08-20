@@ -82,7 +82,7 @@ export default async function LojaPage() {
         </p>
       </div>
 
-      <CartBar precoInscricao={Number(process.env.EVENT_REGISTRATION_PRICE ?? 50)} />
+      <CartBar />
     </main>
   );
 }

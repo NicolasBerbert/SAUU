@@ -8,11 +8,14 @@ const required = [
 ] as const;
 
 const requiredInProduction = [
-  "MERCADOPAGO_ACCESS_TOKEN",
+  "MERCADOPAGO_ACCESS_TOKEN", // PIX — inscrições
   "RESEND_API_KEY",
   "EMAIL_FROM",
   "EVENT_REGISTRATION_PRICE",
   "ADMIN_ALERT_EMAIL",
+  // STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET (loja) ficam OPCIONAIS de
+  // propósito: sem elas o site sobe normal e só o checkout da loja falha,
+  // em vez de derrubar tudo no boot.
 ] as const;
 
 export function validateEnv() {

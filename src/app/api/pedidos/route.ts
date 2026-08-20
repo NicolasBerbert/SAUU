@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { criarPagamentoPix } from "@/lib/mercadopago";
+import { criarSessaoPedidoLoja } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { audit } from "@/lib/audit";
@@ -95,13 +95,18 @@ export async function POST(req: NextRequest) {
     });
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
-    const pix = await criarPagamentoPix({
-      amount: total,
-      description: "Pedido loja — SAUU CLBB",
-      payerEmail: user!.email,
-      payerFirstName: user!.name,
-      payerCpf: user!.cpf,
-      ref: { userId: session.user.id, tipo: "pedido_loja", orderId: order.id },
+    const stripeSession = await criarSessaoPedidoLoja({
+      orderId: order.id,
+      userEmail: user!.email,
+      itens: items.map((item) => {
+        const product = products.find((p) => p.id === item.productId)!;
+        return {
+          nome: product.name,
+          quantidade: item.quantity,
+          preco: Number(product.price),
+          tamanho: item.size,
+        };
+      }),
       baseUrl,
     });
 
@@ -127,7 +132,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ orderId: order.id, checkoutUrl: `/checkout/pix?pid=${pix.id}` });
+    return NextResponse.json({ orderId: order.id, checkoutUrl: stripeSession.url });
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("STOCK_INSUFFICIENT:")) {
       return NextResponse.json(
